@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Risolutore Simbolico Omni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+:root {
+  --ink:    #1c1917;
+  --ink2:   #44403c;
+  --ink3:   #78716c;
+  --cream:  #faf9f7;
+  --paper:  #f5f3ef;
+  --gold:   #b45309;
+  --gold-l: #fef3c7;
+  --gold-b: #d97706;
+  --teal:   #0d7377;
+  --teal-l: #ccfbf1;
+  --red:    #be123c;
+  --red-l:  #ffe4e6;
+  --purple: #534AB7;
+  --border: rgba(28,25,23,0.12);
+  --border2:rgba(28,25,23,0.07);
+  --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 18px rgba(0,0,0,0.05);
+}
+body.dark {
+  --ink:    #f5f5f4;
+  --ink2:   #d6d3d1;
+  --ink3:   #a8a29e;
+  --cream:  #292524;
+  --paper:  #1c1917;
+  --gold:   #f59e0b;
+  --gold-l: rgba(217,119,6,0.15);
+  --gold-b: #fbbf24;
+  --teal:   #2dd4bf;
+  --teal-l: rgba(13,115,119,0.15);
+  --red:    #fb7185;
+  --red-l:  rgba(190,18,60,0.15);
+  --purple: #818cf8;
+  --border: rgba(255,255,255,0.12);
+  --border2:rgba(255,255,255,0.07);
+  --shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Crimson Pro',Georgia,serif;background:var(--paper);color:var(--ink);min-height:100vh;padding:2.5rem 1.5rem 4rem}
+.page{max-width:1280px;margin:0 auto;position:relative;display:flex;flex-direction:column;gap:1.5rem}
+
+@media(min-width: 900px) {
+  .page { display: grid; grid-template-columns: 360px 1fr; align-items: start; gap: 2rem; }
+  .layout-sidebar { position: sticky; top: 2.5rem; }
+}
+header{margin-bottom:2rem;position:relative;}
+.logo-row{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+.logo-greek{font-size:38px;font-weight:300;color:var(--gold);line-height:1;letter-spacing:-1px}
+h1{font-size:26px;font-weight:300;letter-spacing:-0.3px;color:var(--ink)}
+.tagline{font-size:15px;color:var(--ink3);font-style:italic;padding-left:2px}
+.divider{height:1px;background:linear-gradient(to right,var(--gold),transparent);margin-top:1rem;opacity:.35}
+
+/* STATUS */
+.status{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:10px;font-size:14px;margin-bottom:1.5rem;transition:all .25s}
+.status.idle   {background:var(--cream);color:var(--ink3);border:.5px solid var(--border)}
+.status.loading{background:var(--gold-l);color:var(--gold-b);border:.5px solid var(--gold)}
+.status.success{background:var(--teal-l);color:var(--teal);border:.5px solid var(--teal)}
+.status.error  {background:var(--red-l);color:var(--red);border:.5px solid var(--red)}
+.spinner{width:14px;height:14px;flex-shrink:0;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .65s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.dot{width:8px;height:8px;flex-shrink:0;border-radius:50%;background:currentColor}
+
+/* CARDS */
+.card{background:var(--cream);border:.5px solid var(--border);border-radius:14px;padding:1.5rem 1.75rem;box-shadow:var(--shadow);margin-bottom:1.25rem}
+
+/* PILLS */
+.pills-label{font-size:11px;letter-spacing:.1em;color:var(--ink3);text-transform:uppercase;margin-bottom:8px}
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1.5rem}
+.pill{font-family:'JetBrains Mono',monospace;font-size:11.5px;padding:4px 11px;background:var(--paper);color:var(--gold);border:.5px solid rgba(180,83,9,.25);border-radius:20px;cursor:pointer;transition:background .12s,color .12s;white-space:nowrap}
+.pill:hover{background:var(--gold-l);color:#92400e;border-color:var(--gold-b)}
+
+/* FORM */
+.controls-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:14px}
+label{font-size:11px;letter-spacing:.07em;color:var(--ink3);text-transform:uppercase;display:block;margin-bottom:5px}
+input[type=text]{width:100%;height:40px;padding:0 12px;background:var(--paper);border:.5px solid var(--border);border-radius:9px;font-size:15px;font-family:inherit;color:var(--ink);outline:none;transition:border-color .15s,box-shadow .15s}
+input[type=text]:focus{border-color:var(--gold-b);box-shadow:0 0 0 3px rgba(217,119,6,.12)}
+.input-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:flex-end}
+.eq-wrap{position:relative}
+.eq-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:18px;color:var(--gold);font-weight:300;pointer-events:none;font-family:'Crimson Pro',serif}
+.eq-wrap input{font-family:'JetBrains Mono',monospace;font-size:15px;height:44px;padding-left:30px;padding-right:48px}
+
+.live-preview{margin-top:10px;padding:8px 14px;background:rgba(28,25,23,0.02);border:.5px dashed var(--border);border-radius:9px;min-height:44px;display:none;align-items:center;justify-content:center;overflow-x:auto;color:var(--ink2)}
+.live-preview .katex-display{margin:0}
+
+/* OCR & SETTINGS & KEYBOARD */
+.ocr-btn { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:var(--paper); border:.5px solid var(--border); border-radius:6px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--ink3); transition:all .15s; }
+.ocr-btn:hover { color:var(--gold-b); border-color:var(--gold-b); background:var(--gold-l); }
+.kbd-toggle-btn { background:none; border:none; cursor:pointer; color:var(--ink3); padding:4px; border-radius:4px; transition:color .15s; position:absolute; right:44px; top:50%; transform:translateY(-50%); }
+.kbd-toggle-btn:hover { color:var(--gold-b); }
+.settings-btn { position:absolute; right:0; top:0; background:none; border:none; color:var(--ink3); cursor:pointer; padding:6px; border-radius:50%; transition:all .15s; }
+.settings-btn:hover { color:var(--ink); background:var(--border2); }
+.file-input { display:none; }
+
+.keyboard-wrap { display:none; margin-top:10px; background:var(--paper); border:.5px solid var(--border); border-radius:9px; padding:10px; }
+.keyboard-wrap.show { display:block; }
+.keyboard-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(40px,1fr)); gap:6px; }
+.key-btn { background:var(--cream); border:.5px solid var(--border2); border-radius:6px; height:36px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; font-size:13px; cursor:pointer; color:var(--ink); transition:all .15s; }
+.key-btn:hover { background:var(--gold-l); color:var(--gold-b); border-color:var(--gold-b); }
+.key-btn:active { transform:scale(0.95); }
+
+/* MODAL */
+.modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(28,25,23,0.4); backdrop-filter:blur(3px); display:none; align-items:center; justify-content:center; z-index:100; opacity:0; transition:opacity .2s; }
+.modal-overlay.show { display:flex; opacity:1; }
+.modal { background:var(--cream); padding:24px; border-radius:14px; width:90%; max-width:400px; box-shadow:var(--shadow); transform:translateY(20px); transition:transform .2s; }
+.modal-overlay.show .modal { transform:translateY(0); }
+.modal h3 { margin-bottom:12px; font-weight:600; font-size:18px; }
+.modal label { margin-top:12px; display:block; }
+.modal input, .modal select { width:100%; height:40px; margin-bottom:16px; margin-top:4px; padding:0 12px; border:.5px solid var(--border); border-radius:8px; background:var(--paper); outline:none; font-family:inherit; }
+.modal-btns { display:flex; justify-content:flex-end; gap:10px; margin-top:20px; }
+
+/* BUTTONS */
+.btn{height:44px;padding:0 20px;border-radius:9px;font-size:15px;font-family:'Crimson Pro',serif;cursor:pointer;border:none;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.btn-primary{background:var(--ink);color:var(--cream)}
+.btn-primary:hover{background:var(--ink2)}
+.btn-primary:active{transform:scale(.97)}
+.btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-cancel{background:transparent;color:var(--red);border:.5px solid rgba(190,18,60,.3);display:none}
+.btn-cancel.visible{display:flex}
+.btn-cancel:hover{background:var(--red-l)}
+.btn-cancel:active{transform:scale(.97)}
+
+/* SYNTAX HELP */
+details{margin-top:12px}
+summary{font-size:13px;color:var(--ink3);cursor:pointer;user-select:none;list-style:none;display:flex;align-items:center;gap:5px}
+summary::before{content:'▸';font-size:10px;transition:transform .2s}
+details[open] summary::before{transform:rotate(90deg)}
+.help-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px;margin-top:10px}
+.help-item{background:var(--paper);border:.5px solid var(--border2);border-radius:7px;padding:7px 10px}
+.help-item code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);display:block;margin-bottom:2px}
+.help-item span{font-size:12px;color:var(--ink3)}
+
+/* ERROR BOX */
+.error-box{display:none;background:var(--red-l);border:.5px solid var(--red);border-radius:10px;padding:1rem 1.25rem;margin-top:1rem;animation:shake .35s ease}
+.error-box.show{display:block}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.error-title{font-size:15px;font-weight:600;color:var(--red);margin-bottom:5px;display:flex;align-items:center;gap:7px}
+.error-msg{font-size:14px;color:var(--red);line-height:1.6;font-family:'JetBrains Mono',monospace;font-size:12.5px;background:rgba(190,18,60,.06);padding:8px 10px;border-radius:6px;margin-top:6px;word-break:break-all}
+.error-hint{font-size:13px;color:var(--red);margin-top:7px;font-style:italic;line-height:1.5}
+
+/* RESULT CARD */
+.result-card{opacity:0;transform:translateY(8px);transition:opacity .3s ease,transform .3s ease}
+.result-card.show{opacity:1;transform:translateY(0)}
+.result-header{display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;flex-wrap:wrap}
+.result-badge{font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:var(--gold-l);color:var(--gold-b);border:.5px solid rgba(217,119,6,.3)}
+.result-mode{font-size:17px;font-weight:300;color:var(--ink2);font-style:italic}
+
+/* OMNI-SOLVER BLOCKS */
+.omni-block { margin-top: 16px; padding: 16px 20px; border-left: 3px solid transparent; border-radius: 0 12px 12px 0; border-top: .5px solid var(--border2); }
+.omni-block:first-child { border-top: none; margin-top: 0; }
+.omni-block.type-input { border-left-color: var(--ink3); background: linear-gradient(90deg, rgba(120,113,108,0.05) 0%, transparent 100%); }
+.omni-block.type-solve { border-left-color: var(--red); background: linear-gradient(90deg, rgba(190,18,60,0.03) 0%, transparent 100%); }
+.omni-block.type-diff { border-left-color: var(--gold-b); background: linear-gradient(90deg, rgba(217,119,6,0.04) 0%, transparent 100%); }
+.omni-block.type-integrate { border-left-color: var(--teal); background: linear-gradient(90deg, rgba(13,115,119,0.04) 0%, transparent 100%); }
+.omni-block.type-math { border-left-color: var(--ink2); background: linear-gradient(90deg, rgba(68,64,60,0.03) 0%, transparent 100%); }
+.omni-block.type-plot { border-left-color: var(--purple); background: linear-gradient(90deg, rgba(83,74,183,0.03) 0%, transparent 100%); }
+
+.omni-title{font-size:13px;letter-spacing:.05em;color:var(--ink3);text-transform:uppercase;margin-bottom:12px;font-weight:600;display:flex;align-items:center;gap:8px}
+.omni-title::before{content:'';width:4px;height:4px;background:currentColor;border-radius:50%}
+
+.omni-block { opacity:0; transform:translateY(15px); animation:slideUpFade 0.4s cubic-bezier(0.16,1,0.3,1) forwards; }
+@keyframes slideUpFade { to { opacity:1; transform:translateY(0); } }
+
+.type-solve .omni-title { color: var(--gold-b); }
+.type-diff .omni-title { color: var(--gold-b); }
+.type-integrate .omni-title { color: var(--teal); }
+.type-plot .omni-title { color: var(--purple); }
+
+/* MATH */
+.math-display{position:relative;background:var(--paper);border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:14px;border:.5px solid var(--border2);min-height:64px;display:flex;align-items:center;justify-content:center;overflow-x:auto}
+.math-display .katex{font-size:1.35em}
+.math-display .katex-display{margin:0}
+
+.copy-btn{position:absolute;right:8px;top:8px;background:var(--paper);border:.5px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--ink3);transition:all .15s;font-family:'JetBrains Mono',monospace;}
+.copy-btn:hover{color:var(--gold-b);border-color:var(--gold-b);background:var(--gold-l);}
+
+.solutions-grid{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+.sol-card{background:var(--paper);border:.5px solid var(--border);border-radius:9px;padding:14px 18px;display:flex;flex-direction:column;gap:8px}
+.sol-label{font-size:12px;color:var(--ink3);letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+.sol-val{overflow-x:auto;padding-bottom:4px}
+.sol-approx{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink3);background:var(--cream);padding:4px 8px;border-radius:6px;align-self:flex-start}
+
+.plot-wrap{border-radius:10px;overflow:hidden;border:.5px solid var(--border2)}
+.plot-wrap img{width:100%;display:block}
+
+/* STEPS */
+.steps-wrap{margin-bottom:14px;display:none}
+.btn-steps{background:var(--paper);border:.5px solid var(--border);border-radius:8px;padding:8px 14px;font-size:13px;font-family:inherit;color:var(--ink2);cursor:pointer;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;transition:all .15s}
+.btn-steps:hover{background:var(--cream);border-color:var(--gold-b);color:var(--gold-b)}
+.btn-steps svg{transition:transform .2s}
+.btn-steps.open svg{transform:rotate(180deg)}
+.steps-list{margin-top:10px;display:none;flex-direction:column;gap:8px;border-left:2px solid var(--gold-l);padding-left:14px}
+.steps-list.open{display:flex}
+.step-item{background:var(--paper);border:.5px solid var(--border2);border-radius:8px;padding:10px 14px}
+.step-desc{font-size:13px;color:var(--ink3);margin-bottom:6px;font-weight:500}
+.step-math{overflow-x:auto}
+
+@media(max-width:560px){
+  body{padding:1rem 0.5rem 2rem}
+  .card{padding:1.25rem 1rem}
+  .input-row{display:flex;flex-direction:column;gap:10px}
+  .input-row > *{width:100%}
+  .btn{justify-content:center}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="layout-sidebar">
+<header>
+  <div class="logo-row">
+    <span class="logo-greek">Σ</span>
+    <h1>Risolutore Omni</h1>
+  </div>
+  <p class="tagline">calcolo omni-direzionale automatico con SymPy &middot; OCR integrato</p>
+  <button class="settings-btn" id="theme-btn" onclick="toggleTheme()" title="Cambia Tema" style="right:38px;">
+    <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+  <button class="settings-btn" onclick="openSettings()" title="Impostazioni OCR">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+  <div class="divider"></div>
+</header>
+
+<div id="status" class="status idle">
+  <span class="dot"></span>
+  <span id="status-text">In attesa del caricamento&hellip;</span>
+</div>
+
+<div class="card">
+  <div class="pills-label">Esempi rapidi</div>
+  <div class="pills" id="pills"></div>
+
+  <div id="history-section" style="display:none; margin-bottom: 1.5rem;">
+    <div class="pills-label" style="display:flex; justify-content:space-between; align-items:center;">
+      <span>Cronologia</span>
+      <span style="cursor:pointer; font-size:10px; color:var(--red);" onclick="clearHistory()">svuota</span>
+    </div>
+    <div class="pills" id="history-pills" style="margin-bottom:0;"></div>
+  </div>
+
+  <div class="controls-grid" style="grid-template-columns: 1fr auto auto;">
+    <div>
+      <label>Variabile</label>
+      <input type="text" id="var" value="x" title="Variabile principale">
+    </div>
+    <div>
+      <label>Int. da</label>
+      <input type="text" id="int-a" placeholder="es. 0" style="width:65px" title="Estremo inferiore">
+    </div>
+    <div>
+      <label>Int. a</label>
+      <input type="text" id="int-b" placeholder="es. pi" style="width:65px" title="Estremo superiore">
+    </div>
+    <div>
+      <label>x₀ (Taylor)</label>
+      <input type="text" id="x0" placeholder="es. 0" style="width:70px" title="Punto per limite e serie">
+    </div>
+  </div>
+  
+  <div class="controls-grid" style="grid-template-columns: 1fr 1fr; margin-top:-6px;">
+    <div>
+      <label>Asse X (Min, Max)</label>
+      <input type="text" id="x-lim" placeholder="-10, 10" title="Limiti asse X (es. -10, 10)">
+    </div>
+    <div>
+      <label>Asse Y (Min, Max)</label>
+      <input type="text" id="y-lim" placeholder="-12, 12" title="Limiti asse Y (es. -12, 12)">
+    </div>
+  </div>
+
+  <label>Espressione</label>
+  <div class="input-row">
+    <div class="eq-wrap">
+      <span class="eq-prefix">f =</span>
+      <input type="text" id="eq" placeholder="2x + 3(x-1) + sin(x)^2" autocomplete="off" spellcheck="false">
+      <button class="kbd-toggle-btn" onclick="toggleKeyboard()" title="Tastiera Virtuale">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"/><line x1="6" y1="8" x2="6" y2="8"/><line x1="10" y1="8" x2="10" y2="8"/><line x1="14" y1="8" x2="14" y2="8"/><line x1="18" y1="8" x2="18" y2="8"/><line x1="6" y1="12" x2="6" y2="12"/><line x1="10" y1="12" x2="10" y2="12"/><line x1="14" y1="12" x2="14" y2="12"/><line x1="18" y1="12" x2="18" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
+      </button>
+      <button class="ocr-btn" onclick="triggerOCR()" title="Carica Immagine (OCR) o incolla dalla clipboard">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <input type="file" id="ocr-file" class="file-input" accept="image/*" onchange="handleOCR(event)">
+    </div>
+    <button class="btn btn-primary" id="solve-btn" disabled onclick="solve()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+      Calcola
+    </button>
+    <button class="btn btn-cancel" id="cancel-btn" onclick="cancelCalc()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Annulla
+    </button>
+  </div>
+  
+  <div id="keyboard" class="keyboard-wrap">
+    <div class="keyboard-grid" id="keyboard-grid"></div>
+  </div>
+
+  <div id="live-preview" class="live-preview"></div>
+
+  <div id="error-box" class="error-box">
+    <div class="error-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="error-title-text">Errore</span>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+    <div class="error-hint" id="error-hint"></div>
+  </div>
+
+  <details style="margin-top:14px">
+    <summary>Sintassi &mdash; riferimento rapido</summary>
+    <div class="help-grid">
+      <div class="help-item"><code>2x, x^2</code><span>ora supportati!</span></div>
+      <div class="help-item"><code>x**2</code><span>potenza x&sup2;</span></div>
+      <div class="help-item"><code>sqrt(x)</code><span>radice quadrata</span></div>
+      <div class="help-item"><code>sin(x) cos(x)</code><span>trigonometriche</span></div>
+      <div class="help-item"><code>tan(x) atan(x)</code><span>tangente / arctan</span></div>
+      <div class="help-item"><code>exp(x)</code><span>esponenziale e<sup>x</sup></span></div>
+      <div class="help-item"><code>log(x)</code><span>logaritmo naturale</span></div>
+      <div class="help-item"><code>log(x, 10)</code><span>log in base 10</span></div>
+      <div class="help-item"><code>Abs(x)</code><span>valore assoluto</span></div>
+      <div class="help-item"><code>pi</code><span>&pi; &asymp; 3.14159&hellip;</span></div>
+      <div class="help-item"><code>E</code><span>e &asymp; 2.71828&hellip;</span></div>
+      <div class="help-item"><code>oo</code><span>infinito &infin;</span></div>
+      <div class="help-item"><code>*</code><span>moltiplicazione esplicita</span></div>
+    </div>
+  </details>
+</div>
+</div> <!-- END layout-sidebar -->
+
+<div class="layout-main">
+<div class="card result-card" id="result-card" style="display:none">
+  <div class="result-header">
+    <span class="result-badge" id="result-badge">Analisi Completa</span>
+    <span class="result-mode" id="result-mode"></span>
+  </div>
+  <div id="omni-results"></div>
+</div>
+</div> <!-- END layout-main -->
+
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>Impostazioni OCR</h3>
+    <label>Provider OCR</label>
+    <select id="ocr-provider">
+      <option value="gemini">Google Gemini (Gemini 1.5 Flash) - Consigliato</option>
+      <option value="glm">ZhipuAI (GLM-4V)</option>
+    </select>
+    <label>API Key</label>
+    <input type="password" id="ocr-apikey" placeholder="Inserisci qui la tua chiave API...">
+    <p style="font-size:12px;color:var(--ink3);line-height:1.4">La chiave API verrà salvata localmente nel tuo browser. Non verrà inviata ad altri server se non a quelli del provider scelto. Puoi incollare un'immagine in qualsiasi momento (Ctrl+V) per azionare l'OCR.</p>
+    <div class="modal-btns">
+      <button class="btn btn-cancel visible" style="height:36px;padding:0 16px;font-size:14px" onclick="closeSettings()">Annulla</button>
+      <button class="btn btn-primary" style="height:36px;padding:0 16px;font-size:14px" onclick="saveSettings()">Salva</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const EXAMPLES = [
+  {label:"x\u00b2 \u2212 4", eq:"x**2 - 4"},
+  {label:"x\u00b3 \u2212 6x + 2", eq:"x**3 - 6*x + 2"},
+  {label:"sin(x)", eq:"sin(x)"},
+  {label:"x\u00b2\u00b7e\u02e3", eq:"x**2*exp(x)"},
+  {label:"(x+1)\u00b3", eq:"(x+1)**3"},
+  {label:"sin(x)/x", eq:"sin(x)/x"},
+  {label:"Eq(x+1, 3)", eq:"Eq(x+1, 3)"}
+];
+
+EXAMPLES.forEach(e => {
+  const p = document.createElement('div');
+  p.className = 'pill'; p.textContent = e.label;
+  p.onclick = () => { document.getElementById('eq').value = e.eq; hideError(); updatePreview(); };
+  document.getElementById('pills').appendChild(p);
+});
+
+// --- KEYBOARD ---
+const KEYS = [
+  { label: '√', val: 'sqrt()' }, { label: 'π', val: 'pi' }, { label: 'e', val: 'E' },
+  { label: 'x²', val: '^2' }, { label: 'sin', val: 'sin()' }, { label: 'cos', val: 'cos()' },
+  { label: 'tan', val: 'tan()' }, { label: 'ln', val: 'log()' }, { label: 'exp', val: 'exp()' },
+  { label: '|x|', val: 'Abs()' }, { label: '(', val: '(' }, { label: ')', val: ')' },
+  { label: '+', val: '+' }, { label: '-', val: '-' }, { label: '*', val: '*' }, { label: '/', val: '/' }
+];
+
+function initKeyboard() {
+  const grid = document.getElementById('keyboard-grid');
+  KEYS.forEach(k => {
+    const btn = document.createElement('button');
+    btn.className = 'key-btn';
+    btn.textContent = k.label;
+    btn.onclick = (e) => {
+      e.preventDefault();
+      insertTextAtCursor(document.getElementById('eq'), k.val);
+    };
+    grid.appendChild(btn);
+  });
+}
+function insertTextAtCursor(inputEl, text) {
+  const start = inputEl.selectionStart;
+  const end = inputEl.selectionEnd;
+  const val = inputEl.value;
+  inputEl.value = val.substring(0, start) + text + val.substring(end);
+  let newCursorPos = start + text.length;
+  if (text.endsWith('()')) newCursorPos -= 1;
+  inputEl.focus();
+  inputEl.setSelectionRange(newCursorPos, newCursorPos);
+  updatePreview();
+}
+function toggleKeyboard() { document.getElementById('keyboard').classList.toggle('show'); }
+initKeyboard();
+
+let pyodide = null, taskId = 0, blockIdx = 0;
+const resultCache = new Map();
+
+function setStatus(type, msg) {
+  const s = document.getElementById('status');
+  s.className = 'status ' + type;
+  const icon = type === 'loading' ? '<span class="spinner"></span>' : '<span class="dot"></span>';
+  s.innerHTML = icon + '<span>' + msg + '</span>';
+}
+
+function hideError() { document.getElementById('error-box').classList.remove('show'); }
+
+function showError(title, msg, hint) {
+  document.getElementById('error-title-text').textContent = title;
+  document.getElementById('error-msg').textContent = msg;
+  const hintEl = document.getElementById('error-hint');
+  hintEl.textContent = hint || ''; hintEl.style.display = hint ? 'block' : 'none';
+  const box = document.getElementById('error-box');
+  box.classList.remove('show'); void box.offsetWidth; box.classList.add('show');
+}
+
+function rk(el, latex, display) {
+  try { katex.render(latex, el, {throwOnError:false, displayMode:!!display}); }
+  catch { el.textContent = latex; }
+}
+
+function getLatexPreview(str) {
+  let s = str;
+  s = s.replace(/\*\*/g, '^');
+  s = s.replace(/\*/g, '\\cdot ');
+  return s;
+}
+
+function updatePreview() {
+  const eq = document.getElementById('eq').value.trim();
+  const preview = document.getElementById('live-preview');
+  if (!eq) { preview.style.display = 'none'; return; }
+  preview.style.display = 'flex';
+  rk(preview, getLatexPreview(eq), true);
+}
+
+document.getElementById('eq').addEventListener('input', updatePreview);
+
+// --- URL SHARING & COPY ---
+function syncHash(eq) { window.history.replaceState(null, null, '#' + encodeURIComponent(eq)); }
+function checkHash() {
+  const hash = window.location.hash.substring(1);
+  if (hash) {
+    document.getElementById('eq').value = decodeURIComponent(hash);
+    updatePreview();
+    const checkReady = setInterval(() => {
+      if (!document.getElementById('solve-btn').disabled) { clearInterval(checkReady); solve(); }
+    }, 200);
+  }
+}
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const old = btn.textContent;
+    btn.textContent = 'Copiato!';
+    setTimeout(() => btn.textContent = old, 1500);
+  });
+}
+
+// --- HISTORY ---
+function loadHistory() {
+  const hist = JSON.parse(localStorage.getItem('eq_history') || '[]');
+  const sec = document.getElementById('history-section');
+  const hpills = document.getElementById('history-pills');
+  hpills.innerHTML = '';
+  if (hist.length === 0) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  hist.forEach(eq => {
+    const p = document.createElement('div');
+    p.className = 'pill'; p.textContent = eq.length > 20 ? eq.slice(0, 18) + '\u2026' : eq;
+    p.title = eq;
+    p.onclick = () => { document.getElementById('eq').value = eq; hideError(); updatePreview(); };
+    hpills.appendChild(p);
+  });
+}
+
+function addToHistory(eq) {
+  let hist = JSON.parse(localStorage.getItem('eq_history') || '[]');
+  hist = hist.filter(e => e !== eq);
+  hist.unshift(eq);
+  if (hist.length > 10) hist.pop();
+  localStorage.setItem('eq_history', JSON.stringify(hist));
+  loadHistory();
+}
+
+function clearHistory() {
+  localStorage.removeItem('eq_history');
+  loadHistory();
+}
+
+loadHistory();
+
+// --- THEME ---
+function toggleTheme() {
+  document.body.classList.toggle('dark');
+  const isDark = document.body.classList.contains('dark');
+  localStorage.setItem('eq_theme', isDark ? 'dark' : 'light');
+  document.getElementById('theme-icon').innerHTML = isDark 
+    ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
+    : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+}
+if (localStorage.getItem('eq_theme') === 'dark' || (!localStorage.getItem('eq_theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+  document.body.classList.add('dark');
+  document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+}
+
+// --- OCR SETTINGS ---
+function openSettings() {
+  document.getElementById('ocr-apikey').value = localStorage.getItem('eq_apikey') || '';
+  document.getElementById('ocr-provider').value = localStorage.getItem('eq_provider') || 'gemini';
+  document.getElementById('settings-modal').classList.add('show');
+}
+function closeSettings() { document.getElementById('settings-modal').classList.remove('show'); }
+function saveSettings() {
+  localStorage.setItem('eq_apikey', document.getElementById('ocr-apikey').value);
+  localStorage.setItem('eq_provider', document.getElementById('ocr-provider').value);
+  closeSettings();
+}
+
+function triggerOCR() {
+  if (!localStorage.getItem('eq_apikey')) { openSettings(); return; }
+  document.getElementById('ocr-file').click();
+}
+
+async function handleOCR(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  e.target.value = '';
+  processFile(file);
+}
+
+window.addEventListener('paste', e => {
+  if (e.clipboardData.files.length > 0) {
+    const file = e.clipboardData.files[0];
+    if (file.type.startsWith('image/')) processFile(file);
+  }
+});
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = async (ev) => {
+    const b64 = ev.target.result.split(',')[1];
+    await doOCR(b64, file.type);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function doOCR(b64, mimeType) {
+  const apiKey = localStorage.getItem('eq_apikey');
+  const provider = localStorage.getItem('eq_provider') || 'gemini';
+  if (!apiKey) { openSettings(); return; }
+  
+  setStatus('loading', 'Analisi immagine in corso (OCR)...');
+  document.getElementById('solve-btn').disabled = true;
+  
+  try {
+    let eqText = '';
+    const prompt = "Extract the mathematical expression from this image and return ONLY the raw SymPy compatible Python expression (e.g. x**2 + 2*x). Do not use LaTeX, only raw python syntax for SymPy. If it's an equation like a = b, return it as Eq(a, b) or a - (b). No markdown formatting, no explanation, only the expression text. Be exact.";
+    
+    if (provider === 'gemini') {
+      const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ contents: [{ parts: [{text: prompt}, {inline_data: {mime_type: mimeType, data: b64}}] }] })
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error.message);
+      eqText = data.candidates[0].content.parts[0].text.trim();
+    } else {
+      const resp = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
+        method: 'POST', headers: {'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}`},
+        body: JSON.stringify({
+          model: 'glm-4v',
+          messages: [{ role: 'user', content: [{type: 'text', text: prompt}, {type: 'image_url', image_url: {url: `data:${mimeType};base64,${b64}`}}] }]
+        })
+      });
+      const data = await resp.json();
+      if (data.error) throw new Error(data.error.message);
+      eqText = data.choices[0].message.content.trim();
+    }
+    
+    eqText = eqText.replace(/```python|```/g, '').trim();
+    document.getElementById('eq').value = eqText;
+    setStatus('success', 'Espressione estratta con successo!');
+    setTimeout(() => { if (!document.getElementById('solve-btn').disabled) solve(); }, 500);
+  } catch(e) {
+    showError('Errore OCR', e.message);
+    setStatus('error', 'Errore API OCR');
+  }
+  document.getElementById('solve-btn').disabled = false;
+}
+
+// --- PYODIDE ---
+async function loadPy() {
+  setStatus('loading', 'Caricamento Pyodide\u2026');
+  const sc = document.createElement('script');
+  sc.src = 'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js';
+  document.head.appendChild(sc);
+  await new Promise((res,rej) => { sc.onload=res; sc.onerror=rej; });
+  pyodide = await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.25.1/full/'});
+  setStatus('loading', 'Installazione SymPy e Matplotlib\u2026');
+  await pyodide.loadPackage(['sympy','matplotlib','numpy']);
+  await pyodide.runPythonAsync('import sympy as sp, matplotlib, numpy as np, io, base64, json; matplotlib.use("Agg"); import matplotlib.pyplot as plt');
+  const ver = await pyodide.runPythonAsync('sp.__version__');
+  setStatus('success', 'Pronto \u00b7 SymPy ' + ver);
+  document.getElementById('solve-btn').disabled = false;
+  checkHash();
+}
+
+function cancelCalc() {
+  taskId++;
+  document.getElementById('cancel-btn').classList.remove('visible');
+  document.getElementById('solve-btn').disabled = false;
+  setStatus('idle', 'Calcolo annullato');
+}
+
+async function solve() {
+  hideError();
+  const eq = document.getElementById('eq').value.trim();
+  const v = document.getElementById('var').value.trim() || 'x';
+  const a = document.getElementById('int-a').value.trim();
+  const b = document.getElementById('int-b').value.trim();
+  const x0 = document.getElementById('x0').value.trim();
+  const xLim = document.getElementById('x-lim').value.trim();
+  const yLim = document.getElementById('y-lim').value.trim();
+  if (!eq) { showError('Espressione mancante', 'Inserisci un\'espressione nel campo prima di calcolare.'); return; }
+
+  const myId = ++taskId;
+  const isDark = document.body.classList.contains('dark');
+  setStatus('loading', 'Elaborazione in corso...');
+  document.getElementById('solve-btn').disabled = true;
+  document.getElementById('result-card').classList.remove('show');
+  document.getElementById('cancel-btn').classList.add('visible');
+
+  const cacheKey = JSON.stringify({ eq, v, isDark, a, b, x0, xLim, yLim });
+  if (resultCache.has(cacheKey)) {
+    const data = resultCache.get(cacheKey);
+    renderResult(data, eq);
+    setStatus('success', 'Analisi completata (Cache)');
+    addToHistory(eq);
+    syncHash(eq);
+    document.getElementById('solve-btn').disabled = false;
+    document.getElementById('cancel-btn').classList.remove('visible');
+    return;
+  }
+
+  try {
+    const raw = await pyodide.runPythonAsync(buildCode(eq, v, isDark, a, b, x0, xLim, yLim));
+    if (myId !== taskId) return;
+    const data = JSON.parse(raw);
+    if (data.error) {
+    } else {
+      resultCache.set(cacheKey, data);
+      renderResult(data, eq);
+      setStatus('success', 'Analisi completata');
+      addToHistory(eq);
+      syncHash(eq);
+      syncHash(eq);
+    }
+  } catch(e) {
+    if (myId !== taskId) return;
+    const msg = e.message ? e.message.split('\n').slice(-2).join(' ').trim() : String(e);
+    showError('Errore inatteso', msg, 'Prova a semplificare l\'espressione.');
+    setStatus('error', 'Errore');
+  }
+
+  if (myId === taskId) {
+    document.getElementById('solve-btn').disabled = false;
+    document.getElementById('cancel-btn').classList.remove('visible');
+  }
+}
+
+function buildCode(eq, v, isDark, a, b, x0, xLim, yLim) {
+  const bg = isDark ? '#1c1917' : '#f5f3ef';
+  const ink = isDark ? '#a8a29e' : '#78716c';
+  const safeEq = eq.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, ' ');
+  return `
+import json, io, base64
+import sympy as sp
+from sympy import *
+import numpy as np
+import matplotlib.pyplot as plt
+
+def extract_integral_steps(rule):
+    steps = []
+    def traverse(r):
+        rule_type = type(r).__name__
+        if rule_type == 'PartsRule':
+            steps.append({"desc": "Integrazione per parti", "latex": "u = " + sp.latex(r.u) + ", \\\\quad dv = " + sp.latex(r.dv)})
+            try:
+                v_eval = r.v_step.eval()
+                steps.append({"desc": "Applicando la formula: $uv - \\\\int v du$", "latex": sp.latex(r.u * v_eval) + " - \\\\int \\\\left(" + sp.latex(r.second_step.integrand) + "\\\\right) dx"})
+            except: pass
+            traverse(r.v_step)
+            traverse(r.second_step)
+            try: steps.append({"desc": "Risultato dell'integrazione per parti", "latex": sp.latex(r.eval())})
+            except: pass
+        elif rule_type == 'URule':
+            steps.append({"desc": "Sostituzione ($u$-sub)", "latex": "u = " + sp.latex(r.u) + ", \\\\quad du = " + sp.latex(r.u_diff) + " dx"})
+            traverse(r.substep)
+            try: steps.append({"desc": "Risultato dopo la sostituzione", "latex": sp.latex(r.eval())})
+            except: pass
+        elif rule_type == 'AddRule':
+            steps.append({"desc": "Linearità dell'integrale", "latex": "\\\\int (" + sp.latex(r.integrand) + ") dx"})
+            for sub in r.substeps: traverse(sub)
+        elif rule_type == 'ConstantTimesRule':
+            steps.append({"desc": "Porta fuori la costante", "latex": sp.latex(r.constant) + "\\\\int " + sp.latex(r.other) + " dx"})
+            traverse(r.substep)
+        elif rule_type in ['TrigRule', 'ExpRule', 'PowerRule', 'ArctanRule', 'ArcsinRule', 'LogRule']:
+            try: steps.append({"desc": "Integrale notevole", "latex": "\\\\int " + sp.latex(r.integrand) + "\\\\, dx = " + sp.latex(r.eval())})
+            except: steps.append({"desc": "Integrale notevole", "latex": "\\\\int " + sp.latex(r.integrand) + "\\\\, dx"})
+        elif hasattr(r, 'substep'): traverse(r.substep)
+        elif hasattr(r, 'substeps'):
+            for sub in r.substeps: traverse(sub)
+    try: traverse(rule)
+    except: pass
+    return steps
+
+def extract_diff_steps(expr, v):
+    steps = []
+    def _diff(e):
+        if not e.has(v): return sp.S.Zero
+        if e == v: return sp.S.One
+        if isinstance(e, sp.Add):
+            steps.append({"desc": "Derivata della somma", "latex": "\\\\frac{d}{d" + sp.latex(v) + "}(" + sp.latex(e) + ")"})
+            res = sum(_diff(arg) for arg in e.args)
+            steps.append({"desc": "Somma parziale calcolata", "latex": sp.latex(res)})
+            return res
+        if isinstance(e, sp.Mul):
+            args = e.args
+            term_str = " + ".join([sp.latex(sp.Mul(*(args[:i] + args[i+1:]))) + r" \\\\cdot \\\\frac{d}{d" + sp.latex(v) + "}(" + sp.latex(args[i]) + ")" for i in range(len(args))])
+            steps.append({"desc": "Regola del prodotto", "latex": term_str})
+            res = sp.diff(e, v)
+            steps.append({"desc": "Risultato parziale (prodotto)", "latex": sp.latex(res)})
+            return res
+        if isinstance(e, sp.Pow):
+            base, exp = e.base, e.exp
+            if exp.has(v) and base.has(v):
+                steps.append({"desc": "Derivata esponenziale", "latex": "\\\\frac{d}{d" + sp.latex(v) + "}(" + sp.latex(e) + ")"})
+            elif base.has(v):
+                steps.append({"desc": "Regola della potenza ed eventuale catena", "latex": sp.latex(exp) + "\\\\cdot (" + sp.latex(base) + ")^{" + sp.latex(exp-1) + r"} \\\\cdot \\\\frac{d}{d" + sp.latex(v) + "}(" + sp.latex(base) + ")"})
+            res = sp.diff(e, v)
+            steps.append({"desc": "Risultato parziale della potenza", "latex": sp.latex(res)})
+            return res
+        if isinstance(e, sp.Function):
+            steps.append({"desc": "Derivata della funzione", "latex": "\\\\frac{d}{d" + sp.latex(v) + "}(" + sp.latex(e) + ")"})
+            res = sp.diff(e, v)
+            return res
+        return sp.diff(e, v)
+    try: _diff(expr)
+    except: pass
+    return steps
+
+def sfn(fn, xs):
+    with np.errstate(divide='ignore', invalid='ignore'):
+        try: ys = np.array([float(fn(xi)) for xi in xs], dtype=float)
+        except: ys = np.zeros_like(xs)
+    ys[np.abs(ys) > 50] = np.nan
+    return ys
+
+def fig64(fig=None):
+    buf = io.BytesIO()
+    if fig:
+        fig.savefig(buf, format='png', dpi=140, bbox_inches='tight')
+        plt.close(fig)
+    else:
+        plt.savefig(buf, format='png', dpi=140, bbox_inches='tight')
+        plt.close()
+    return base64.b64encode(buf.getvalue()).decode()
+
+def style_ax(ax, fig):
+    BG = '${bg}'; INK3 = '${ink}'
+    fig.patch.set_facecolor(BG); ax.set_facecolor(BG)
+    ax.axhline(0, color=INK3, linewidth=0.7, zorder=2)
+    ax.axvline(0, color=INK3, linewidth=0.7, zorder=2)
+    for sp2 in ax.spines.values(): sp2.set_color(INK3); sp2.set_linewidth(0.5)
+    ax.tick_params(colors=INK3, labelsize=10)
+    ax.grid(True, alpha=0.2, color=INK3, linewidth=0.5)
+    ax.set_ylim(-12, 12)
+
+try:
+    var_sym = sp.Symbol('${v}')
+    
+    raw_input_str = """${safeEq}"""
+    from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
+    transformations = standard_transformations + (implicit_multiplication_application, convert_xor)
+    
+    if '=' in raw_input_str and 'Eq(' not in raw_input_str:
+        left_str, right_str = raw_input_str.split('=', 1)
+        left = parse_expr(left_str, transformations=transformations)
+        right = parse_expr(right_str, transformations=transformations)
+        expr = left - right
+    else:
+        expr = parse_expr(raw_input_str, transformations=transformations)
+
+    out = {'blocks': []}
+
+    # 1. Base form
+    try:
+        simp = sp.simplify(expr)
+        out['blocks'].append({
+            'type': 'input', 'title': 'Interpretazione e Semplificazione', 
+            'latex': sp.latex(expr) + ('' if simp == expr else r' = ' + sp.latex(simp))
+        })
+    except: pass
+    
+    # 2. Solve / Roots
+    try:
+        sols = sp.solve(expr, var_sym)
+        if isinstance(sols, dict): sols = [{k: v} for k, v in sols.items()]
+        
+        if sols and isinstance(sols, list):
+            # Convert dicts or complex structures safely
+            try: real = [s for s in sols if sp.im(s) == 0]
+            except: real = []
+            
+            block = {'type': 'solve', 'title': 'Radici / Soluzioni', 'solutions': []}
+            for s in sols:
+                try: approx = str(round(complex(s.evalf()).real, 6))
+                except: approx = '?'
+                block['solutions'].append({ 'latex': '${v} = ' + sp.latex(s), 'approx': approx })
+            
+            # Step-by-step
+            steps_list = []
+            steps_list.append({"desc": "Equazione di partenza", "latex": sp.latex(expr) + " = 0"})
+            
+            if expr.is_polynomial(var_sym):
+                poly = sp.Poly(expr, var_sym)
+                deg = poly.degree()
+                if deg == 2:
+                    coeffs = poly.all_coeffs()
+                    if len(coeffs) == 3:
+                        a, b, c = coeffs
+                        delta = sp.simplify(b**2 - 4*a*c)
+                        steps_list.append({"desc": "Discriminante ($\\\\Delta = b^2 - 4ac$)", "latex": "\\\\Delta = " + sp.latex(b) + "^2 - 4(" + sp.latex(a) + ")(" + sp.latex(c) + ") = " + sp.latex(delta)})
+                        steps_list.append({"desc": "Formula quadratica", "latex": "${v} = \\\\frac{-" + sp.latex(b) + " \\\\pm \\\\sqrt{" + sp.latex(delta) + "}}{2(" + sp.latex(a) + ")}"})
+                elif deg == 1:
+                    coeffs = poly.all_coeffs()
+                    if len(coeffs) == 2:
+                        a, b = coeffs
+                        steps_list.append({"desc": "Isolamento variabile", "latex": sp.latex(a) + "${v} = " + sp.latex(-b) + " \\\\implies ${v} = " + sp.latex(sp.simplify(-b/a))})
+                elif deg == 3:
+                    coeffs = poly.all_coeffs()
+                    if len(coeffs) == 4:
+                        a, b, c, d = coeffs
+                        if b == 0:
+                            p, q = sp.simplify(c/a), sp.simplify(d/a)
+                            steps_list.append({"desc": "Cubica depressa del tipo $x^3 + px + q = 0$", "latex": "p = " + sp.latex(p) + ", \\\\quad q = " + sp.latex(q)})
+                            steps_list.append({"desc": "Sostituzione di Cardano (${v} = u + v$)", "latex": "3uv = " + sp.latex(-p) + ", \\\\quad u^3 + v^3 = " + sp.latex(-q)})
+                            p3 = sp.simplify((p/3)**3)
+                            steps_list.append({"desc": "Risolvente quadratica per $u^3$ e $v^3$", "latex": "t^2 + (" + sp.latex(q) + ")t - (" + sp.latex(p3) + ") = 0"})
+                            t = sp.Symbol('t')
+                            quad = t**2 + q*t - p3
+                            quad_sols = sp.solve(quad, t)
+                            if len(quad_sols) == 2:
+                                steps_list.append({"desc": "Soluzioni risolvente", "latex": "u^3, v^3 = " + sp.latex(quad_sols[0]) + ", \\\\; " + sp.latex(quad_sols[1])})
+                                steps_list.append({"desc": "Estrazione prima radice reale", "latex": "${v}_1 = \\\\sqrt[3]{" + sp.latex(quad_sols[0]) + "} + \\\\sqrt[3]{" + sp.latex(quad_sols[1]) + "}"})
+                        else:
+                            shift = sp.simplify(-b / (3*a))
+                            steps_list.append({"desc": "Depressione dell'equazione (Sostituzione)", "latex": "${v} = t + (" + sp.latex(shift) + ")"})
+                            t = sp.Symbol('t')
+                            expr_t = sp.expand(expr.subs(var_sym, t + shift))
+                            steps_list.append({"desc": "Equazione depressa risultante", "latex": sp.latex(expr_t) + " = 0"})
+            elif expr != simp:
+                steps_list.append({"desc": "Semplificazione", "latex": sp.latex(simp) + " = 0"})
+            
+            fact = sp.factor(expr)
+            if fact != expr and fact.is_Mul:
+                steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(fact) + " = 0"})
+
+            block['steps'] = steps_list
+            out['blocks'].append(block)
+    except: pass
+
+    # 3. Derivative
+    try:
+        d = sp.diff(expr, var_sym)
+        if d != 0:
+            block = { 'type': 'diff', 'title': 'Derivata rispetto a ${v}', 'latex': r'\\dfrac{d}{d ${v}}\\!\\left[' + sp.latex(expr) + r'\\right] = ' + sp.latex(d) }
+            
+            diff_steps_list = extract_diff_steps(expr, var_sym)
+            if diff_steps_list:
+                block['steps'] = diff_steps_list
+
+            except: pass
+            out['blocks'].append(block)
+    except: pass
+
+    # 4. Integral
+    try:
+        a_str = """${a}"""
+        b_str = """${b}"""
+        if a_str and b_str:
+            a_val = parse_expr(a_str, transformations=transformations)
+            b_val = parse_expr(b_str, transformations=transformations)
+            I_def = sp.integrate(expr, (var_sym, a_val, b_val))
+            block_def = { 
+                'type': 'integrate', 
+                'title': 'Integrale Definito', 
+                'latex': r'\\int_{' + sp.latex(a_val) + r'}^{' + sp.latex(b_val) + r'} \\left(' + sp.latex(expr) + r'\\right)\\, d${v} = ' + sp.latex(I_def)
+            }
+            try:
+                approx_val = str(round(complex(I_def.evalf()).real, 6))
+                block_def['latex'] += r' \\approx ' + approx_val
+            except: pass
+            
+            except: pass
+            out['blocks'].append(block_def)
+
+        I = sp.integrate(expr, var_sym)
+        block = { 'type': 'integrate', 'title': 'Integrale indefinito', 'latex': r'\\int \\left(' + sp.latex(expr) + r'\\right)\\, d${v} = ' + sp.latex(I) + r' + C' }
+        
+        try:
+            from sympy.integrals.manualintegrate import integral_steps
+            rule = integral_steps(expr, var_sym)
+            int_steps_list = extract_integral_steps(rule)
+            if int_steps_list:
+                block['steps'] = int_steps_list
+        except: pass
+
+        except: pass
+        out['blocks'].append(block)
+    except: pass
+    # 4.5 Studio Funzione Avanzato
+    try:
+        from sympy.calculus.util import continuous_domain
+        dom = continuous_domain(expr, var_sym, sp.S.Reals)
+        if dom != sp.S.Reals:
+            out['blocks'].append({ 'type': 'math', 'title': 'Dominio Naturale', 'latex': r'D = ' + sp.latex(dom) })
+    except: pass
+
+    try:
+        if len(expr.free_symbols) <= 1:
+            d1 = sp.diff(expr, var_sym)
+            d2 = sp.diff(d1, var_sym)
+            crit_sols = sp.solve(d1, var_sym)
+            crit_real = []
+            for s in crit_sols:
+                try:
+                    if s.is_real or sp.im(s.evalf()) == 0: crit_real.append(s)
+                except: pass
+            
+            if crit_real:
+                block_crit = { 'type': 'math', 'title': 'Punti Stazionari ($f\'(${v}) = 0$)', 'latex': '', 'steps': [] }
+                latex_pts = []
+                for pt in crit_real:
+                    try:
+                        y_val = expr.subs(var_sym, pt)
+                        d2_val = sp.simplify(d2.subs(var_sym, pt))
+                        tipo = "Flesso a tangente orizzontale"
+                        if d2_val > 0: tipo = "Minimo locale"
+                        elif d2_val < 0: tipo = "Massimo locale"
+                        
+                        latex_pts.append(r'P\left(' + sp.latex(pt) + r', ' + sp.latex(y_val) + r'\right)')
+                        block_crit['steps'].append({
+                            'desc': tipo,
+                            'latex': 'x = ' + sp.latex(pt) + r', \quad y = ' + sp.latex(y_val) + r' \quad \left(f^{\prime\prime}(x) = ' + sp.latex(d2_val) + r'\right)'
+                        })
+                    except: pass
+                if latex_pts:
+                    block_crit['latex'] = ", \\quad ".join(latex_pts)
+                    out['blocks'].append(block_crit)
+    except: pass
+
+    # 5. Factorization / Expansion
+    try:
+        f = sp.factor(expr)
+        if f != expr:
+            out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(f) })
+            
+        e = sp.expand(expr)
+        if e != expr and e != f:
+            out['blocks'].append({ 'type': 'math', 'title': 'Espansione / Sviluppo polinomiale', 'latex': sp.latex(e) })
+    except: pass
+    
+    # 5.5 Limits
+    try:
+        x0_str = """${x0}"""
+        if x0_str:
+            x0_val = parse_expr(x0_str, transformations=transformations)
+            lim_x0 = sp.limit(expr, var_sym, x0_val)
+            latex_lim = r'\\lim_{' + sp.latex(var_sym) + r'\\to ' + sp.latex(x0_val) + r'} \left(' + sp.latex(expr) + r'\\right) = ' + sp.latex(lim_x0)
+            try:
+                taylor = sp.series(expr, var_sym, x0_val, 5).removeO()
+                latex_taylor = r'T_4(x) = ' + sp.latex(taylor)
+                out['blocks'].append({ 'type': 'math', 'title': 'Analisi in $x_0 = ' + sp.latex(x0_val) + '$', 'latex': latex_lim + r' \\quad\\quad ' + latex_taylor })
+            except:
+                out['blocks'].append({ 'type': 'math', 'title': 'Limite in $x_0 = ' + sp.latex(x0_val) + '$', 'latex': latex_lim })
+        else:
+            if len(expr.free_symbols) == 1:
+                lim_inf = sp.limit(expr, var_sym, sp.oo)
+                lim_zero = sp.limit(expr, var_sym, 0)
+                if not lim_inf.has(sp.oo, -sp.oo) or not lim_zero.has(sp.oo, -sp.oo):
+                    latex_str = r'\\lim_{' + sp.latex(var_sym) + r'\\to \\infty} \\left(' + sp.latex(expr) + r'\\right) = ' + sp.latex(lim_inf) + r'\\\\quad\\\\quad \\lim_{' + sp.latex(var_sym) + r'\\to 0} \\left(' + sp.latex(expr) + r'\\right) = ' + sp.latex(lim_zero)
+                    out['blocks'].append({ 'type': 'math', 'title': 'Limiti Notevoli', 'latex': latex_str })
+    except: pass
+
+    # 6. Plot Master
+    try:
+        if len(expr.free_symbols) <= 1:
+            f_lamb = sp.lambdify(var_sym, expr, 'numpy')
+            
+            x_min, x_max = -10, 10
+            y_min, y_max = -12, 12
+            
+            x_lim_str = """${xLim}"""
+            y_lim_str = """${yLim}"""
+            try:
+                if x_lim_str: x_min, x_max = map(float, x_lim_str.replace(' ', '').split(','))
+            except: pass
+            try:
+                if y_lim_str: y_min, y_max = map(float, y_lim_str.replace(' ', '').split(','))
+            except: pass
+            
+            xs = np.linspace(x_min, x_max, 800)
+            fig, ax = plt.subplots(figsize=(8.5, 4))
+            
+            BG = '${bg}'; INK3 = '${ink}'
+            fig.patch.set_facecolor(BG); ax.set_facecolor(BG)
+            ax.axhline(0, color=INK3, linewidth=0.7, zorder=2)
+            ax.axvline(0, color=INK3, linewidth=0.7, zorder=2)
+            for sp2 in ax.spines.values(): sp2.set_color(INK3); sp2.set_linewidth(0.5)
+            ax.tick_params(colors=INK3, labelsize=10)
+            ax.grid(True, alpha=0.2, color=INK3, linewidth=0.5)
+            ax.set_ylim(y_min, y_max)
+            ax.set_xlim(x_min, x_max)
+            
+            ax.plot(xs, sfn(f_lamb, xs), color='#534AB7', linewidth=2.5, zorder=4, label='f(${v})')
+
+            try:
+                if 'd1' in locals():
+                    d1_lamb = sp.lambdify(var_sym, d1, 'numpy')
+                    ax.plot(xs, sfn(d1_lamb, xs), color='#d97706', linewidth=1.5, linestyle='--', zorder=3, alpha=0.8, label="f'(${v})")
+            except: pass
+
+            try:
+                if 'a_val' in locals() and 'b_val' in locals():
+                    a_num = float(a_val.evalf())
+                    b_num = float(b_val.evalf())
+                    xs_fill = np.linspace(a_num, b_num, 200)
+                    ax.fill_between(xs_fill, sfn(f_lamb, xs_fill), color='#0d7377', alpha=0.3, zorder=2, label="Area ∫")
+            except: pass
+
+            if 'crit_real' in locals() and isinstance(crit_real, list):
+                for s in crit_real:
+                    try:
+                        x_c = float(s.evalf())
+                        y_c = float(expr.subs(var_sym, x_c).evalf())
+                        if x_min <= x_c <= x_max: ax.scatter([x_c], [y_c], color='#be123c', s=60, zorder=5, edgecolors='white', linewidths=1)
+                    except: pass
+            
+            if 'sols' in locals() and isinstance(sols, list):
+                for s in sols:
+                    try: 
+                        if sp.im(s) == 0:
+                            x_c = float(s.evalf())
+                            if x_min <= x_c <= x_max: ax.scatter([x_c], [0], color='#0d7377', s=50, zorder=5, edgecolors='white', linewidths=1.2)
+                    except: pass
+            
+            ax.set_xlabel('${v}', fontsize=12, color='#78716c')
+            ax.legend(fontsize=10, framealpha=.9, edgecolor='#e7e5e4', loc='upper right')
+            out['blocks'].append({ 'type': 'plot', 'title': 'Grafico Master & Overlay', 'img': fig64(fig) })
+    except: pass
+
+    res_json = json.dumps(out)
+except Exception as exc:
+    res_json = json.dumps({'error': str(exc)})
+
+res_json
+`;
+}
+
+function renderResult(data, eq) {
+  const card = document.getElementById('result-card');
+  card.style.display = 'block'; void card.offsetWidth; card.classList.add('show');
+  document.getElementById('result-mode').textContent = eq.length < 42 ? eq : eq.slice(0,40)+'\u2026';
+
+  const container = document.getElementById('omni-results');
+  container.innerHTML = '';
+  
+  if(!data.blocks || data.blocks.length === 0) {
+    container.innerHTML = '<p style="color:var(--ink3);font-size:14px;font-style:italic">Nessun risultato matematico ricavato.</p>';
+    return;
+  }
+  
+  data.blocks.forEach((b, i) => {
+    blockIdx++;
+    const wrap = document.createElement('div');
+    wrap.className = 'omni-block type-' + b.type;
+    wrap.style.animationDelay = `${i * 0.08}s`;
+    let html = `<div class="omni-title">${b.title}</div>`;
+    
+    if (b.type === 'input' || b.type === 'math' || b.type === 'diff' || b.type === 'integrate') {
+      const safeLatex = b.latex.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+      html += `<div class="math-display"><button class="copy-btn" onclick="copyToClipboard('${safeLatex}', this)">Copia LaTeX</button><div id="omni-${blockIdx}"></div></div>`;
+      
+      if (b.steps && b.steps.length > 0) {
+        html += `<div class="steps-wrap" style="display:block">
+          <button class="btn-steps" id="bbtn-${blockIdx}" onclick="toggleSteps('blist-${blockIdx}', 'bbtn-${blockIdx}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="btxt-${blockIdx}">Mostra passaggi analitici</span>
+          </button>
+          <div id="blist-${blockIdx}" class="steps-list">
+            ${b.steps.map((st, k) => `<div class="step-item"><div class="step-desc">${st.desc}</div><div class="step-math" id="sm-${blockIdx}-${k}"></div></div>`).join('')}
+          </div>
+        </div>`;
+      }
+
+      if (b.img) html += `<div class="plot-wrap" style="margin-bottom:14px;border-color:var(--border)"><img src="data:image/png;base64,${b.img}" alt="Grafico specifico"></div>`;
+      wrap.innerHTML = html;
+      container.appendChild(wrap);
+      rk(document.getElementById(`omni-${blockIdx}`), b.latex, true);
+      
+      if (b.steps) b.steps.forEach((st, k) => rk(document.getElementById(`sm-${blockIdx}-${k}`), st.latex, true));
+    } 
+    else if (b.type === 'solve') {
+      html += `<div class="solutions-grid" id="sg-${blockIdx}">`;
+      b.solutions.forEach((s, j) => {
+        html += `<div class="sol-card"><div class="sol-val" id="sv-${blockIdx}-${j}"></div><div class="sol-approx">\u2248 ${s.approx}</div></div>`;
+      });
+      html += `</div>`;
+      if (b.steps && b.steps.length > 0) {
+        html += `<div class="steps-wrap" style="display:block">
+          <button class="btn-steps" id="bbtn-${blockIdx}" onclick="toggleSteps('blist-${blockIdx}', 'bbtn-${blockIdx}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span id="btxt-${blockIdx}">Mostra passaggi</span>
+          </button>
+          <div id="blist-${blockIdx}" class="steps-list">
+            ${b.steps.map((st, k) => `<div class="step-item"><div class="step-desc">${st.desc}</div><div class="step-math" id="sm-${blockIdx}-${k}"></div></div>`).join('')}
+          </div>
+        </div>`;
+      }
+      wrap.innerHTML = html;
+      container.appendChild(wrap);
+      b.solutions.forEach((s, j) => rk(document.getElementById(`sv-${blockIdx}-${j}`), s.latex, false));
+      if (b.steps) b.steps.forEach((st, k) => rk(document.getElementById(`sm-${blockIdx}-${k}`), st.latex, true));
+    }
+    else if (b.type === 'plot') {
+      html += `<div class="plot-wrap"><img src="data:image/png;base64,${b.img}" alt="Grafico"></div>`;
+      wrap.innerHTML = html;
+      container.appendChild(wrap);
+    }
+  });
+
+  setTimeout(() => card.scrollIntoView({behavior:'smooth',block:'nearest'}), 60);
+}
+
+function toggleSteps(listId, btnId) {
+  const list = document.getElementById(listId);
+  const btn = document.getElementById(btnId);
+  const txt = btn.querySelector('span');
+  if (list.classList.contains('open')) {
+    list.classList.remove('open');
+    btn.classList.remove('open');
+    txt.textContent = 'Mostra passaggi';
+  } else {
+    list.classList.add('open');
+    btn.classList.add('open');
+    txt.textContent = 'Nascondi passaggi';
+  }
+}
+
+document.getElementById('eq').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('solve-btn').disabled) solve();
+  if (e.key === 'Escape') { e.target.value = ''; updatePreview(); document.getElementById('keyboard').classList.remove('show'); }
+});
+
+loadPy().catch(e => {
+  setStatus('error', 'Errore caricamento Pyodide');
+  showError('Impossibile caricare Pyodide', e.message, 'Controlla la connessione internet e ricarica la pagina.');
+});
+</script>
+</body>
+</html>
