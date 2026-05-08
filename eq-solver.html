@@ -1197,6 +1197,10 @@ loadPy().catch(e => {
   setStatus('error', 'Errore caricamento Pyodide');
   showError('Impossibile caricare Pyodide', e.message, 'Controlla la connessione internet e ricarica la pagina.');
 });
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { getLatexPreview };
+}
 </script>
 </body>
 </html>
