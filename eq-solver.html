@@ -677,12 +677,13 @@ async function solve() {
     if (myId !== taskId) return;
     const data = JSON.parse(raw);
     if (data.error) {
+      showError('Errore di Calcolo', data.error, 'Verifica la sintassi matematica e le impostazioni.');
+      setStatus('error', 'Errore durante l\'analisi');
     } else {
       resultCache.set(cacheKey, data);
       renderResult(data, eq);
       setStatus('success', 'Analisi completata');
       addToHistory(eq);
-      syncHash(eq);
       syncHash(eq);
     }
   } catch(e) {
