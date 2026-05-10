@@ -487,14 +487,23 @@ function copyToClipboard(text, btn) {
 }
 
 // --- HISTORY ---
+// ⚡ BOLT OPTIMIZATION: Use in-memory state to avoid synchronous JSON parsing and localStorage I/O on the main thread
+let eqHistory = [];
+let historySaveTimeout = null;
+
+try {
+  eqHistory = JSON.parse(localStorage.getItem('eq_history') || '[]');
+} catch (e) {
+  eqHistory = [];
+}
+
 function loadHistory() {
-  const hist = JSON.parse(localStorage.getItem('eq_history') || '[]');
   const sec = document.getElementById('history-section');
   const hpills = document.getElementById('history-pills');
   hpills.innerHTML = '';
-  if (hist.length === 0) { sec.style.display = 'none'; return; }
+  if (eqHistory.length === 0) { sec.style.display = 'none'; return; }
   sec.style.display = 'block';
-  hist.forEach(eq => {
+  eqHistory.forEach(eq => {
     const p = document.createElement('div');
     p.className = 'pill'; p.textContent = eq.length > 20 ? eq.slice(0, 18) + '\u2026' : eq;
     p.title = eq;
@@ -504,15 +513,22 @@ function loadHistory() {
 }
 
 function addToHistory(eq) {
-  let hist = JSON.parse(localStorage.getItem('eq_history') || '[]');
-  hist = hist.filter(e => e !== eq);
-  hist.unshift(eq);
-  if (hist.length > 10) hist.pop();
-  localStorage.setItem('eq_history', JSON.stringify(hist));
+  eqHistory = eqHistory.filter(e => e !== eq);
+  eqHistory.unshift(eq);
+  if (eqHistory.length > 10) eqHistory.pop();
+
+  // ⚡ BOLT OPTIMIZATION: Lazy synchronization to localStorage to prevent blocking
+  if (historySaveTimeout) clearTimeout(historySaveTimeout);
+  historySaveTimeout = setTimeout(() => {
+    localStorage.setItem('eq_history', JSON.stringify(eqHistory));
+  }, 1000);
+
   loadHistory();
 }
 
 function clearHistory() {
+  eqHistory = [];
+  if (historySaveTimeout) clearTimeout(historySaveTimeout);
   localStorage.removeItem('eq_history');
   loadHistory();
 }
