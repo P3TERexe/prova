@@ -1,0 +1,3 @@
+## 2024-05-10 - [Avoid synchronous I/O on UI Main Thread for history updates]
+**Learning:** `JSON.parse` and `localStorage.setItem` for frequently updated state like application history were running synchronously on the main thread, leading to potential blocking when expressions update rapidly.
+**Action:** Used an in-memory `eqHistory` array and implemented a lazy state sync (debounce with `setTimeout`) to prevent parsing overhead and blocking. Next time, always check local storage read/write cycles on state updates for similar optimizations.
