@@ -1,0 +1,3 @@
+## 2024-05-12 - Vectorized NumPy Evaluation vs List Comprehensions in Pyodide
+**Learning:** Evaluating lambdified SymPy functions point-by-point via list comprehensions (`[float(fn(xi)) for xi in xs]`) in Pyodide is a severe performance bottleneck. The overhead of calling back and forth between Python and the underlying WASM environment per point is high.
+**Action:** Always attempt vectorized NumPy array evaluation first (e.g., `ys = np.asarray(fn(xs))`) as the primary execution path when calculating function values over an array of inputs in Pyodide. Keep the list comprehension approach only as a fallback for functions that don't support vectorization.
