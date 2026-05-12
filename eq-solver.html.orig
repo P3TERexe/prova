@@ -267,7 +267,7 @@ details[open] summary::before{transform:rotate(90deg)}
       <input type="text" id="x0" placeholder="es. 0" style="width:70px" title="Punto per limite e serie">
     </div>
   </div>
-  
+
   <div class="controls-grid" style="grid-template-columns: 1fr 1fr; margin-top:-6px;">
     <div>
       <label>Asse X (Min, Max)</label>
@@ -301,7 +301,7 @@ details[open] summary::before{transform:rotate(90deg)}
       Annulla
     </button>
   </div>
-  
+
   <div id="keyboard" class="keyboard-wrap">
     <div class="keyboard-grid" id="keyboard-grid"></div>
   </div>
@@ -524,7 +524,7 @@ function toggleTheme() {
   document.body.classList.toggle('dark');
   const isDark = document.body.classList.contains('dark');
   localStorage.setItem('eq_theme', isDark ? 'dark' : 'light');
-  document.getElementById('theme-icon').innerHTML = isDark 
+  document.getElementById('theme-icon').innerHTML = isDark
     ? '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>'
     : '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
 }
@@ -578,14 +578,14 @@ async function doOCR(b64, mimeType) {
   const apiKey = localStorage.getItem('eq_apikey');
   const provider = localStorage.getItem('eq_provider') || 'gemini';
   if (!apiKey) { openSettings(); return; }
-  
+
   setStatus('loading', 'Analisi immagine in corso (OCR)...');
   document.getElementById('solve-btn').disabled = true;
-  
+
   try {
     let eqText = '';
     const prompt = "Extract the mathematical expression from this image and return ONLY the raw SymPy compatible Python expression (e.g. x**2 + 2*x). Do not use LaTeX, only raw python syntax for SymPy. If it's an equation like a = b, return it as Eq(a, b) or a - (b). No markdown formatting, no explanation, only the expression text. Be exact.";
-    
+
     if (provider === 'gemini') {
       const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -606,7 +606,7 @@ async function doOCR(b64, mimeType) {
       if (data.error) throw new Error(data.error.message);
       eqText = data.choices[0].message.content.trim();
     }
-    
+
     eqText = eqText.replace(/```python|```/g, '').trim();
     document.getElementById('eq').value = eqText;
     setStatus('success', 'Espressione estratta con successo!');
@@ -780,15 +780,9 @@ def extract_diff_steps(expr, v):
     return steps
 
 def sfn(fn, xs):
-    # ⚡ Bolt: Vectorize evaluation first (e.g. ys = fn(xs)) instead of point-by-point
-    # list comprehension which is a severe bottleneck in Pyodide
     with np.errstate(divide='ignore', invalid='ignore'):
-        try:
-            ys = np.asarray(fn(xs), dtype=float)
-            if ys.ndim == 0: ys = np.full_like(xs, ys)
-        except:
-            try: ys = np.array([float(fn(xi)) for xi in xs], dtype=float)
-            except: ys = np.zeros_like(xs)
+        try: ys = np.array([float(fn(xi)) for xi in xs], dtype=float)
+        except: ys = np.zeros_like(xs)
     ys[np.abs(ys) > 50] = np.nan
     return ys
 
@@ -814,11 +808,11 @@ def style_ax(ax, fig):
 
 try:
     var_sym = sp.Symbol('${v}')
-    
+
     raw_input_str = """${safeEq}"""
     from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
     transformations = standard_transformations + (implicit_multiplication_application, convert_xor)
-    
+
     if '=' in raw_input_str and 'Eq(' not in raw_input_str:
         left_str, right_str = raw_input_str.split('=', 1)
         left = parse_expr(left_str, transformations=transformations)
@@ -833,31 +827,31 @@ try:
     try:
         simp = sp.simplify(expr)
         out['blocks'].append({
-            'type': 'input', 'title': 'Interpretazione e Semplificazione', 
+            'type': 'input', 'title': 'Interpretazione e Semplificazione',
             'latex': sp.latex(expr) + ('' if simp == expr else r' = ' + sp.latex(simp))
         })
     except: pass
-    
+
     # 2. Solve / Roots
     try:
         sols = sp.solve(expr, var_sym)
         if isinstance(sols, dict): sols = [{k: v} for k, v in sols.items()]
-        
+
         if sols and isinstance(sols, list):
             # Convert dicts or complex structures safely
             try: real = [s for s in sols if sp.im(s) == 0]
             except: real = []
-            
+
             block = {'type': 'solve', 'title': 'Radici / Soluzioni', 'solutions': []}
             for s in sols:
                 try: approx = str(round(complex(s.evalf()).real, 6))
                 except: approx = '?'
                 block['solutions'].append({ 'latex': '${v} = ' + sp.latex(s), 'approx': approx })
-            
+
             # Step-by-step
             steps_list = []
             steps_list.append({"desc": "Equazione di partenza", "latex": sp.latex(expr) + " = 0"})
-            
+
             if expr.is_polynomial(var_sym):
                 poly = sp.Poly(expr, var_sym)
                 deg = poly.degree()
@@ -897,7 +891,7 @@ try:
                             steps_list.append({"desc": "Equazione depressa risultante", "latex": sp.latex(expr_t) + " = 0"})
             elif expr != simp:
                 steps_list.append({"desc": "Semplificazione", "latex": sp.latex(simp) + " = 0"})
-            
+
             fact = sp.factor(expr)
             if fact != expr and fact.is_Mul:
                 steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(fact) + " = 0"})
@@ -911,7 +905,7 @@ try:
         d = sp.diff(expr, var_sym)
         if d != 0:
             block = { 'type': 'diff', 'title': 'Derivata rispetto a ${v}', 'latex': r'\\dfrac{d}{d ${v}}\\!\\left[' + sp.latex(expr) + r'\\right] = ' + sp.latex(d) }
-            
+
             diff_steps_list = extract_diff_steps(expr, var_sym)
             if diff_steps_list:
                 block['steps'] = diff_steps_list
@@ -928,22 +922,22 @@ try:
             a_val = parse_expr(a_str, transformations=transformations)
             b_val = parse_expr(b_str, transformations=transformations)
             I_def = sp.integrate(expr, (var_sym, a_val, b_val))
-            block_def = { 
-                'type': 'integrate', 
-                'title': 'Integrale Definito', 
+            block_def = {
+                'type': 'integrate',
+                'title': 'Integrale Definito',
                 'latex': r'\\int_{' + sp.latex(a_val) + r'}^{' + sp.latex(b_val) + r'} \\left(' + sp.latex(expr) + r'\\right)\\, d${v} = ' + sp.latex(I_def)
             }
             try:
                 approx_val = str(round(complex(I_def.evalf()).real, 6))
                 block_def['latex'] += r' \\approx ' + approx_val
             except: pass
-            
+
             except: pass
             out['blocks'].append(block_def)
 
         I = sp.integrate(expr, var_sym)
         block = { 'type': 'integrate', 'title': 'Integrale indefinito', 'latex': r'\\int \\left(' + sp.latex(expr) + r'\\right)\\, d${v} = ' + sp.latex(I) + r' + C' }
-        
+
         try:
             from sympy.integrals.manualintegrate import integral_steps
             rule = integral_steps(expr, var_sym)
@@ -973,7 +967,7 @@ try:
                 try:
                     if s.is_real or sp.im(s.evalf()) == 0: crit_real.append(s)
                 except: pass
-            
+
             if crit_real:
                 block_crit = { 'type': 'math', 'title': 'Punti Stazionari ($f\'(${v}) = 0$)', 'latex': '', 'steps': [] }
                 latex_pts = []
@@ -984,7 +978,7 @@ try:
                         tipo = "Flesso a tangente orizzontale"
                         if d2_val > 0: tipo = "Minimo locale"
                         elif d2_val < 0: tipo = "Massimo locale"
-                        
+
                         latex_pts.append(r'P\left(' + sp.latex(pt) + r', ' + sp.latex(y_val) + r'\right)')
                         block_crit['steps'].append({
                             'desc': tipo,
@@ -1001,12 +995,12 @@ try:
         f = sp.factor(expr)
         if f != expr:
             out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(f) })
-            
+
         e = sp.expand(expr)
         if e != expr and e != f:
             out['blocks'].append({ 'type': 'math', 'title': 'Espansione / Sviluppo polinomiale', 'latex': sp.latex(e) })
     except: pass
-    
+
     # 5.5 Limits
     try:
         x0_str = """${x0}"""
@@ -1033,10 +1027,10 @@ try:
     try:
         if len(expr.free_symbols) <= 1:
             f_lamb = sp.lambdify(var_sym, expr, 'numpy')
-            
+
             x_min, x_max = -10, 10
             y_min, y_max = -12, 12
-            
+
             x_lim_str = """${xLim}"""
             y_lim_str = """${yLim}"""
             try:
@@ -1045,10 +1039,10 @@ try:
             try:
                 if y_lim_str: y_min, y_max = map(float, y_lim_str.replace(' ', '').split(','))
             except: pass
-            
+
             xs = np.linspace(x_min, x_max, 800)
             fig, ax = plt.subplots(figsize=(8.5, 4))
-            
+
             BG = '${bg}'; INK3 = '${ink}'
             fig.patch.set_facecolor(BG); ax.set_facecolor(BG)
             ax.axhline(0, color=INK3, linewidth=0.7, zorder=2)
@@ -1058,7 +1052,7 @@ try:
             ax.grid(True, alpha=0.2, color=INK3, linewidth=0.5)
             ax.set_ylim(y_min, y_max)
             ax.set_xlim(x_min, x_max)
-            
+
             ax.plot(xs, sfn(f_lamb, xs), color='#534AB7', linewidth=2.5, zorder=4, label='f(${v})')
 
             try:
@@ -1082,15 +1076,15 @@ try:
                         y_c = float(expr.subs(var_sym, x_c).evalf())
                         if x_min <= x_c <= x_max: ax.scatter([x_c], [y_c], color='#be123c', s=60, zorder=5, edgecolors='white', linewidths=1)
                     except: pass
-            
+
             if 'sols' in locals() and isinstance(sols, list):
                 for s in sols:
-                    try: 
+                    try:
                         if sp.im(s) == 0:
                             x_c = float(s.evalf())
                             if x_min <= x_c <= x_max: ax.scatter([x_c], [0], color='#0d7377', s=50, zorder=5, edgecolors='white', linewidths=1.2)
                     except: pass
-            
+
             ax.set_xlabel('${v}', fontsize=12, color='#78716c')
             ax.legend(fontsize=10, framealpha=.9, edgecolor='#e7e5e4', loc='upper right')
             out['blocks'].append({ 'type': 'plot', 'title': 'Grafico Master & Overlay', 'img': fig64(fig) })
@@ -1111,23 +1105,23 @@ function renderResult(data, eq) {
 
   const container = document.getElementById('omni-results');
   container.innerHTML = '';
-  
+
   if(!data.blocks || data.blocks.length === 0) {
     container.innerHTML = '<p style="color:var(--ink3);font-size:14px;font-style:italic">Nessun risultato matematico ricavato.</p>';
     return;
   }
-  
+
   data.blocks.forEach((b, i) => {
     blockIdx++;
     const wrap = document.createElement('div');
     wrap.className = 'omni-block type-' + b.type;
     wrap.style.animationDelay = `${i * 0.08}s`;
     let html = `<div class="omni-title">${b.title}</div>`;
-    
+
     if (b.type === 'input' || b.type === 'math' || b.type === 'diff' || b.type === 'integrate') {
       const safeLatex = b.latex.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
       html += `<div class="math-display"><button class="copy-btn" onclick="copyToClipboard('${safeLatex}', this)">Copia LaTeX</button><div id="omni-${blockIdx}"></div></div>`;
-      
+
       if (b.steps && b.steps.length > 0) {
         html += `<div class="steps-wrap" style="display:block">
           <button class="btn-steps" id="bbtn-${blockIdx}" onclick="toggleSteps('blist-${blockIdx}', 'bbtn-${blockIdx}')">
@@ -1144,9 +1138,9 @@ function renderResult(data, eq) {
       wrap.innerHTML = html;
       container.appendChild(wrap);
       rk(document.getElementById(`omni-${blockIdx}`), b.latex, true);
-      
+
       if (b.steps) b.steps.forEach((st, k) => rk(document.getElementById(`sm-${blockIdx}-${k}`), st.latex, true));
-    } 
+    }
     else if (b.type === 'solve') {
       html += `<div class="solutions-grid" id="sg-${blockIdx}">`;
       b.solutions.forEach((s, j) => {
