@@ -1,0 +1,3 @@
+## 2024-05-14 - Pyodide Function Evaluation Bottleneck
+**Learning:** Evaluating lambdified SymPy functions point-by-point via list comprehensions in Pyodide is a severe performance bottleneck due to crossing the Python/C (Pyodide/WASM) boundary repeatedly.
+**Action:** Always use vectorized NumPy array evaluation (e.g., `ys = fn(xs)`) as the primary execution path for Pyodide function evaluation, with point-by-point as a fallback.
