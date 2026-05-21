@@ -1,0 +1,3 @@
+## 2024-05-21 - Vectorize NumPy evaluation in Pyodide
+**Learning:** Evaluating lambdified SymPy functions point-by-point via list comprehensions in Pyodide is a severe performance bottleneck.
+**Action:** Vectorized NumPy array evaluation (e.g., `ys = fn(xs)`) should always be used as the primary execution path. Broadcast the result `ys = np.full_like(xs, ys, dtype=float)` if it returns a 0-dimensional scalar array. Maintain the list comprehension as a fallback in case vectorized operations fail for complex expressions.
