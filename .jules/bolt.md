@@ -1,0 +1,3 @@
+## 2024-05-24 - Pyodide SymPy Evaluation Bottleneck
+**Learning:** Evaluating lambdified SymPy functions inside Pyodide via list comprehensions (`[fn(x) for x in xs]`) is a severe performance bottleneck. Vectorized NumPy evaluation (`fn(xs)`) is 10-100x faster but requires special handling for constant functions which return 0-dimensional scalars.
+**Action:** Always prefer vectorized NumPy evaluation (`ys = fn(xs)`) for lambdified SymPy expressions in Pyodide. Wrap the call in a `try...except` block with a list comprehension fallback, and explicitly handle scalar outputs using `np.isscalar(ys)` and `np.full_like`.
