@@ -781,8 +781,17 @@ def extract_diff_steps(expr, v):
 
 def sfn(fn, xs):
     with np.errstate(divide='ignore', invalid='ignore'):
-        try: ys = np.array([float(fn(xi)) for xi in xs], dtype=float)
-        except: ys = np.zeros_like(xs)
+        try:
+            # ⚡ Bolt Optimization: Use vectorized numpy array evaluation
+            # This avoids O(n) slow python loop inside pyodide list comprehensions
+            ys = fn(xs)
+            if np.isscalar(ys) or (isinstance(ys, np.ndarray) and ys.ndim == 0):
+                ys = np.full_like(xs, float(ys), dtype=float)
+            else:
+                ys = np.asarray(ys, dtype=float)
+        except Exception:
+            try: ys = np.array([float(fn(xi)) for xi in xs], dtype=float)
+            except: ys = np.zeros_like(xs)
     ys[np.abs(ys) > 50] = np.nan
     return ys
 
