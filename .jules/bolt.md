@@ -1,0 +1,3 @@
+## 2024-05-24 - Pyodide SymPy lambdify performance
+**Learning:** Evaluating lambdified SymPy functions point-by-point via list comprehensions in Pyodide is a severe performance bottleneck. Vectorized NumPy array evaluation (`ys = fn(xs)`) is significantly faster. If the result is a 0-dimensional scalar (e.g., for constant functions), it must be broadcast to an array using `np.full_like(xs, ys, dtype=float)` before use.
+**Action:** Always try vectorized array evaluation for lambdified functions in Pyodide before falling back to point-by-point loops. Handled scalar broadcasting for edge cases.

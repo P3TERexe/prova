@@ -781,8 +781,20 @@ def extract_diff_steps(expr, v):
 
 def sfn(fn, xs):
     with np.errstate(divide='ignore', invalid='ignore'):
-        try: ys = np.array([float(fn(xi)) for xi in xs], dtype=float)
-        except: ys = np.zeros_like(xs)
+        try:
+            # ⚡ Bolt Optimization:
+            # Vectorized evaluation is significantly faster in Pyodide than point-by-point
+            # list comprehensions for lambdified SymPy functions.
+            ys = fn(xs)
+            # Handle scalar results (e.g. for constant functions)
+            if np.isscalar(ys) or (isinstance(ys, np.ndarray) and ys.ndim == 0):
+                ys = np.full_like(xs, ys, dtype=float)
+            else:
+                ys = np.asarray(ys, dtype=float)
+        except:
+            # Fallback for complex functions that don't support vectorization
+            try: ys = np.array([float(fn(xi)) for xi in xs], dtype=float)
+            except: ys = np.zeros_like(xs)
     ys[np.abs(ys) > 50] = np.nan
     return ys
 
