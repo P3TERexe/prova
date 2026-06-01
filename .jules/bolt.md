@@ -1,0 +1,3 @@
+## 2026-06-01 - Vectorize lambdified SymPy functions
+**Learning:** Evaluating lambdified SymPy functions point-by-point via list comprehensions in Pyodide is a severe performance bottleneck. Vectorized NumPy array evaluation should be used. Also, handle 0-dimensional scalar cases (constant functions) by broadcasting them to arrays using `np.full_like`.
+**Action:** When working with SymPy lambdify and NumPy within a Pyodide execution context, always prefer vectorized calls `fn(xs)` over scalar iteration. Always ensure scalar results are safely handled and shaped correctly.
