@@ -1,0 +1,3 @@
+## 2024-06-07 - Pyodide SymPy Evaluation Bottleneck
+**Learning:** Evaluating lambdified SymPy functions point-by-point via list comprehensions in Pyodide is a severe performance bottleneck. Vectorized NumPy array evaluation (`ys = fn(xs)`) provides a massive speedup but requires handling for 0-dimensional scalar results (e.g. for constant functions) via broadcasting (`np.full_like`).
+**Action:** Always prefer NumPy vectorized evaluations (`fn(xs)`) over loop/list comprehension iterations when evaluating math functions across arrays in Pyodide, falling back to iterative only if vectorized execution raises an exception.
