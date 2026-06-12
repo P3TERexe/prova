@@ -464,7 +464,12 @@ function updatePreview() {
   rk(preview, getLatexPreview(eq), true);
 }
 
-document.getElementById('eq').addEventListener('input', updatePreview);
+// ⚡ Bolt: Debounce input event to reduce unnecessary KaTeX renders and DOM updates while typing
+let debounceTimer;
+document.getElementById('eq').addEventListener('input', () => {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(updatePreview, 150);
+});
 
 // --- URL SHARING & COPY ---
 function syncHash(eq) { window.history.replaceState(null, null, '#' + encodeURIComponent(eq)); }
