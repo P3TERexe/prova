@@ -830,6 +830,16 @@ try:
 
     out = {'blocks': []}
 
+    try:
+        factored_expr = sp.factor(expr)
+    except:
+        factored_expr = expr
+
+    try:
+        diff_expr = sp.diff(expr, var_sym)
+    except:
+        diff_expr = None
+
     # 1. Base form
     try:
         simp = sp.simplify(expr)
@@ -899,9 +909,8 @@ try:
             elif expr != simp:
                 steps_list.append({"desc": "Semplificazione", "latex": sp.latex(simp) + " = 0"})
             
-            fact = sp.factor(expr)
-            if fact != expr and fact.is_Mul:
-                steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(fact) + " = 0"})
+            if factored_expr != expr and factored_expr.is_Mul:
+                steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(factored_expr) + " = 0"})
 
             block['steps'] = steps_list
             out['blocks'].append(block)
@@ -909,9 +918,8 @@ try:
 
     # 3. Derivative
     try:
-        d = sp.diff(expr, var_sym)
-        if d != 0:
-            block = { 'type': 'diff', 'title': 'Derivata rispetto a ${v}', 'latex': r'\\dfrac{d}{d ${v}}\\!\\left[' + sp.latex(expr) + r'\\right] = ' + sp.latex(d) }
+        if diff_expr is not None and diff_expr != 0:
+            block = { 'type': 'diff', 'title': 'Derivata rispetto a ${v}', 'latex': r'\\dfrac{d}{d ${v}}\\!\\left[' + sp.latex(expr) + r'\\right] = ' + sp.latex(diff_expr) }
             
             diff_steps_list = extract_diff_steps(expr, var_sym)
             if diff_steps_list:
@@ -965,10 +973,9 @@ try:
     except: pass
 
     try:
-        if len(expr.free_symbols) <= 1:
-            d1 = sp.diff(expr, var_sym)
-            d2 = sp.diff(d1, var_sym)
-            crit_sols = sp.solve(d1, var_sym)
+        if len(expr.free_symbols) <= 1 and diff_expr is not None:
+            d2 = sp.diff(diff_expr, var_sym)
+            crit_sols = sp.solve(diff_expr, var_sym)
             crit_real = []
             for s in crit_sols:
                 try:
@@ -999,12 +1006,11 @@ try:
 
     # 5. Factorization / Expansion
     try:
-        f = sp.factor(expr)
-        if f != expr:
-            out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(f) })
+        if factored_expr != expr:
+            out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(factored_expr) })
             
         e = sp.expand(expr)
-        if e != expr and e != f:
+        if e != expr and e != factored_expr:
             out['blocks'].append({ 'type': 'math', 'title': 'Espansione / Sviluppo polinomiale', 'latex': sp.latex(e) })
     except: pass
     
@@ -1063,8 +1069,8 @@ try:
             ax.plot(xs, sfn(f_lamb, xs), color='#534AB7', linewidth=2.5, zorder=4, label='f(${v})')
 
             try:
-                if 'd1' in locals():
-                    d1_lamb = sp.lambdify(var_sym, d1, 'numpy')
+                if diff_expr is not None:
+                    d1_lamb = sp.lambdify(var_sym, diff_expr, 'numpy')
                     ax.plot(xs, sfn(d1_lamb, xs), color='#d97706', linewidth=1.5, linestyle='--', zorder=3, alpha=0.8, label="f'(${v})")
             except: pass
 
