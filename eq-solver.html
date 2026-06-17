@@ -828,11 +828,19 @@ try:
     else:
         expr = parse_expr(raw_input_str, transformations=transformations)
 
+    # Cache expensive operations
+    try: expr_simp = sp.simplify(expr)
+    except: expr_simp = expr
+    try: expr_fact = sp.factor(expr)
+    except: expr_fact = expr
+    try: expr_diff = sp.diff(expr, var_sym)
+    except: expr_diff = 0
+
     out = {'blocks': []}
 
     # 1. Base form
     try:
-        simp = sp.simplify(expr)
+        simp = expr_simp
         out['blocks'].append({
             'type': 'input', 'title': 'Interpretazione e Semplificazione', 
             'latex': sp.latex(expr) + ('' if simp == expr else r' = ' + sp.latex(simp))
@@ -899,7 +907,7 @@ try:
             elif expr != simp:
                 steps_list.append({"desc": "Semplificazione", "latex": sp.latex(simp) + " = 0"})
             
-            fact = sp.factor(expr)
+            fact = expr_fact
             if fact != expr and fact.is_Mul:
                 steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(fact) + " = 0"})
 
@@ -909,7 +917,7 @@ try:
 
     # 3. Derivative
     try:
-        d = sp.diff(expr, var_sym)
+        d = expr_diff
         if d != 0:
             block = { 'type': 'diff', 'title': 'Derivata rispetto a ${v}', 'latex': r'\\dfrac{d}{d ${v}}\\!\\left[' + sp.latex(expr) + r'\\right] = ' + sp.latex(d) }
             
@@ -917,7 +925,6 @@ try:
             if diff_steps_list:
                 block['steps'] = diff_steps_list
 
-            except: pass
             out['blocks'].append(block)
     except: pass
 
@@ -939,7 +946,6 @@ try:
                 block_def['latex'] += r' \\approx ' + approx_val
             except: pass
             
-            except: pass
             out['blocks'].append(block_def)
 
         I = sp.integrate(expr, var_sym)
@@ -953,7 +959,6 @@ try:
                 block['steps'] = int_steps_list
         except: pass
 
-        except: pass
         out['blocks'].append(block)
     except: pass
     # 4.5 Studio Funzione Avanzato
@@ -966,7 +971,7 @@ try:
 
     try:
         if len(expr.free_symbols) <= 1:
-            d1 = sp.diff(expr, var_sym)
+            d1 = expr_diff
             d2 = sp.diff(d1, var_sym)
             crit_sols = sp.solve(d1, var_sym)
             crit_real = []
@@ -999,7 +1004,7 @@ try:
 
     # 5. Factorization / Expansion
     try:
-        f = sp.factor(expr)
+        f = expr_fact
         if f != expr:
             out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(f) })
             
