@@ -830,6 +830,20 @@ try:
 
     out = {'blocks': []}
 
+    # Performance optimization: cache expensive SymPy operations to prevent
+    # redundant recalculations and avoid blocking the main thread.
+    cached_diff = None
+    try:
+        cached_diff = sp.diff(expr, var_sym)
+    except:
+        pass
+
+    cached_factor = None
+    try:
+        cached_factor = sp.factor(expr)
+    except:
+        pass
+
     # 1. Base form
     try:
         simp = sp.simplify(expr)
@@ -899,7 +913,7 @@ try:
             elif expr != simp:
                 steps_list.append({"desc": "Semplificazione", "latex": sp.latex(simp) + " = 0"})
             
-            fact = sp.factor(expr)
+            fact = cached_factor if cached_factor is not None else sp.factor(expr)
             if fact != expr and fact.is_Mul:
                 steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(fact) + " = 0"})
 
@@ -909,7 +923,7 @@ try:
 
     # 3. Derivative
     try:
-        d = sp.diff(expr, var_sym)
+        d = cached_diff if cached_diff is not None else sp.diff(expr, var_sym)
         if d != 0:
             block = { 'type': 'diff', 'title': 'Derivata rispetto a ${v}', 'latex': r'\\dfrac{d}{d ${v}}\\!\\left[' + sp.latex(expr) + r'\\right] = ' + sp.latex(d) }
             
@@ -966,7 +980,7 @@ try:
 
     try:
         if len(expr.free_symbols) <= 1:
-            d1 = sp.diff(expr, var_sym)
+            d1 = cached_diff if cached_diff is not None else sp.diff(expr, var_sym)
             d2 = sp.diff(d1, var_sym)
             crit_sols = sp.solve(d1, var_sym)
             crit_real = []
@@ -999,7 +1013,7 @@ try:
 
     # 5. Factorization / Expansion
     try:
-        f = sp.factor(expr)
+        f = cached_factor if cached_factor is not None else sp.factor(expr)
         if f != expr:
             out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(f) })
             
