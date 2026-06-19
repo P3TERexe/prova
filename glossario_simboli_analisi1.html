@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glossario Simboli - Analisi Matematica 1</title>
+    <style>
+        :root {
+            --bg-color: #faf9f6;
+            --text-color: #2c2c2c;
+            --card-bg: #ffffff;
+            --accent-color: #4a90d9;
+            --border-color: #e0e0e0;
+            --hover-bg: #f0f7ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Verdana', 'Arial', sans-serif;
+            line-height: 1.8;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-size: 18px;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .intro {
+            font-size: 1.1em;
+            color: #555;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Navigation for quick access */
+        .nav-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            background-color: var(--card-bg);
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .nav-btn:hover, .nav-btn:focus {
+            background-color: var(--accent-color);
+            color: white;
+            outline: 3px solid #2c2c2c;
+        }
+
+        section {
+            margin-bottom: 50px;
+            scroll-margin-top: 20px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #333;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            background-color: #eef6ff;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .symbol-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .symbol-card {
+            background-color: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .symbol-card:hover, .symbol-card:focus-within {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+            border-color: var(--accent-color);
+            outline: 2px solid var(--accent-color);
+        }
+
+        .symbol-main {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-align: center;
+            margin-bottom: 10px;
+            font-family: 'Times New Roman', Times, serif;
+        }
+
+        .symbol-name {
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+            margin-bottom: 10px;
+            color: #444;
+        }
+
+        .symbol-desc {
+            font-size: 0.95em;
+            color: #555;
+            text-align: center;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .example-box {
+            margin-top: 15px;
+            font-style: italic;
+            font-size: 0.9em;
+            color: #666;
+            text-align: center;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9em;
+            border-top: 1px solid #ddd;
+        }
+
+        @media (max-width: 600px) {
+            .symbol-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 1.8em; }
+            h2 { font-size: 1.5em; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Glossario dei Simboli</h1>
+        <p class="intro">Analisi Matematica 1 - Guida Visiva Chiara e Semplificata</p>
+        <p style="margin-top:10px; font-size: 0.9em;">Progettato per facilitare la lettura e la memorizzazione.</p>
+    </header>
+
+    <nav class="nav-categories" aria-label="Categorie di simboli">
+        <a href="#insiemi" class="nav-btn">Insiemi & Logica</a>
+        <a href="#numeri" class="nav-btn">Numeri</a>
+        <a href="#funzioni" class="nav-btn">Funzioni</a>
+        <a href="#limiti" class="nav-btn">Limiti</a>
+        <a href="#derivate" class="nav-btn">Derivate</a>
+        <a href="#integrali" class="nav-btn">Integrali</a>
+    </nav>
+
+    <section id="insiemi">
+        <h2>Insiemi e Logica</h2>
+        <div class="symbol-grid">
+            <article class="symbol-card">
+                <div class="symbol-main">∈</div>
+                <div class="symbol-name">Appartiene</div>
+                <div class="symbol-desc">Indica che un elemento fa parte di un insieme.</div>
+                <div class="example-box">Esempio: 2 ∈ N (2 è un numero naturale)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">∉</div>
+                <div class="symbol-name">Non appartiene</div>
+                <div class="symbol-desc">Indica che un elemento NON fa parte di un insieme.</div>
+                <div class="example-box">Esempio: -1 ∉ N (-1 non è naturale)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">⊆</div>
+                <div class="symbol-name">Sottoinsieme</div>
+                <div class="symbol-desc">Un insieme è contenuto (o uguale) a un altro.</div>
+                <div class="example-box">Esempio: N ⊆ Z (I naturali stanno negli interi)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">∪</div>
+                <div class="symbol-name">Unione</div>
+                <div class="symbol-desc">Mette insieme gli elementi di due insiemi.</div>
+                <div class="example-box">Esempio: A ∪ B (Tutti gli elementi di A e di B)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">∩</div>
+                <div class="symbol-name">Intersezione</div>
+                <div class="symbol-desc">Prende solo gli elementi comuni a due insiemi.</div>
+                <div class="example-box">Esempio: A ∩ B (Solo ciò che sta sia in A che in B)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">∀</div>
+                <div class="symbol-name">Per ogni / Qualunque</div>
+                <div class="symbol-desc">Quantificatore universale. Vale per tutti gli elementi.</div>
+                <div class="example-box">Esempio: ∀x > 0 (Per ogni x maggiore di zero)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">∃</div>
+                <div class="symbol-name">Esiste</div>
+                <div class="symbol-desc">Quantificatore esistenziale. Ce n'è almeno uno.</div>
+                <div class="example-box">Esempio: ∃x tale che... (Esiste almeno una x...)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">⇒</div>
+                <div class="symbol-name">Implica</div>
+                <div class="symbol-desc">Se vale la prima cosa, allora vale anche la seconda.</div>
+                <div class="example-box">Esempio: x = 2 ⇒ x² = 4</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">⇔</div>
+                <div class="symbol-name">Se e solo se</div>
+                <div class="symbol-desc">Le due affermazioni sono equivalenti (vanno entrambe bene o male).</div>
+                <div class="example-box">Esempio: x > 0 ⇔ -x < 0</div>
+            </article>
+        </div>
+    </section>
+
+    <section id="numeri">
+        <h2>Insiemi Numerici</h2>
+        <div class="symbol-grid">
+            <article class="symbol-card">
+                <div class="symbol-main">ℕ</div>
+                <div class="symbol-name">Numeri Naturali</div>
+                <div class="symbol-desc">0, 1, 2, 3, 4...</div>
+                <div class="example-box">Usati per contare.</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">ℤ</div>
+                <div class="symbol-name">Numeri Interi</div>
+                <div class="symbol-desc">..., -2, -1, 0, 1, 2, ...</div>
+                <div class="example-box">Include i numeri negativi.</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">ℚ</div>
+                <div class="symbol-name">Numeri Razionali</div>
+                <div class="symbol-desc">Frazioni e numeri decimali limitati/periodici.</div>
+                <div class="example-box">Esempio: 1/2, 0.333...</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">ℝ</div>
+                <div class="symbol-name">Numeri Reali</div>
+                <div class="symbol-desc">Tutti i numeri sulla retta (inclusi irrazionali come √2 o π).</div>
+                <div class="example-box">L'insieme più usato in Analisi 1.</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">∞</div>
+                <div class="symbol-name">Infinito</div>
+                <div class="symbol-desc">Un valore più grande di qualsiasi numero reale.</div>
+                <div class="example-box">Simbolo di crescita illimitata.</div>
+            </article>
+        </div>
+    </section>
+
+    <section id="funzioni">
+        <h2>Funzioni e Relazioni</h2>
+        <div class="symbol-grid">
+            <article class="symbol-card">
+                <div class="symbol-main">f(x)</div>
+                <div class="symbol-name">Funzione di x</div>
+                <div class="symbol-desc">Una regola che trasforma x in un risultato.</div>
+                <div class="example-box">Esempio: f(x) = x + 1</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">→</div>
+                <div class="symbol-name">Freccia di mappatura</div>
+                <div class="symbol-desc">Indica da dove parte e dove arriva una funzione.</div>
+                <div class="example-box">Esempio: f: ℝ → ℝ (Da reali a reali)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">|x|</div>
+                <div class="symbol-name">Valore Assoluto (Modulo)</div>
+                <div class="symbol-desc">Rende il numero sempre positivo (distanza da zero).</div>
+                <div class="example-box">Esempio: |-5| = 5</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">⌊x⌋</div>
+                <div class="symbol-name">Parte Intera</div>
+                <div class="symbol-desc">Il più grande intero minore o uguale a x.</div>
+                <div class="example-box">Esempio: ⌊3.9⌋ = 3</div>
+            </article>
+        </div>
+    </section>
+
+    <section id="limiti">
+        <h2>Limiti</h2>
+        <div class="symbol-grid">
+            <article class="symbol-card">
+                <div class="symbol-main">lim</div>
+                <div class="symbol-name">Limite</div>
+                <div class="symbol-desc">Descrive il comportamento di una funzione quando x si avvicina a un valore.</div>
+                <div class="example-box">Il valore a cui "tendi".</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">x → c</div>
+                <div class="symbol-name">x tende a c</div>
+                <div class="symbol-desc">La x si avvicina sempre più al numero c.</div>
+                <div class="example-box">Può farlo da destra (+) o da sinistra (-).</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">ε</div>
+                <div class="symbol-name">Epsilon</div>
+                <div class="symbol-desc">Una quantità positiva piccolissima (errore tollerato).</div>
+                <div class="example-box">Usato nella definizione formale di limite.</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">δ</div>
+                <div class="symbol-name">Delta</div>
+                <div class="symbol-desc">Una distanza piccola intorno a un punto.</div>
+                <div class="example-box">Usato insieme a epsilon nei limiti.</div>
+            </article>
+        </div>
+    </section>
+
+    <section id="derivate">
+        <h2>Derivate</h2>
+        <div class="symbol-grid">
+            <article class="symbol-card">
+                <div class="symbol-main">'</div>
+                <div class="symbol-name">Apostrofo (Prima derivata)</div>
+                <div class="symbol-desc">Indica la velocità di cambiamento della funzione.</div>
+                <div class="example-box">Esempio: f'(x)</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">dy/dx</div>
+                <div class="symbol-name">Differenziale</div>
+                <div class="symbol-desc">Rapporto tra variazione di y e variazione di x.</div>
+                <div class="example-box">Notazione di Leibniz per la derivata.</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">∂</div>
+                <div class="symbol-name">Derivata Parziale</div>
+                <div class="symbol-desc">Derivata rispetto a una sola variabile (utile in più dimensioni).</div>
+                <div class="example-box">Si legge "delta" o "parziale".</div>
+            </article>
+        </div>
+    </section>
+
+    <section id="integrali">
+        <h2>Integrali</h2>
+        <div class="symbol-grid">
+            <article class="symbol-card">
+                <div class="symbol-main">∫</div>
+                <div class="symbol-name">Integrale</div>
+                <div class="symbol-desc">Calcola l'area sotto la curva di una funzione.</div>
+                <div class="example-box">È l'operazione inversa della derivata.</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">dx</div>
+                <div class="symbol-name">Differenziale in x</div>
+                <div class="symbol-desc">Indica rispetto a quale variabile stai integrando.</div>
+                <div class="example-box">Chiude il simbolo di integrale: ∫ f(x) dx</div>
+            </article>
+
+            <article class="symbol-card">
+                <div class="symbol-main">Σ</div>
+                <div class="symbol-name">Sommatoria</div>
+                <div class="symbol-desc">Somma di una sequenza di termini.</div>
+                <div class="example-box">Esempio: Σ (da i=1 a n) di i</div>
+            </article>
+        </div>
+    </section>
+
+    <footer>
+        <p>Glossario creato per supportare lo studio dell'Analisi Matematica.</p>
+        <p>Design accessibile ad alto contrasto e font leggibili.</p>
+    </footer>
+</div>
+
+</body>
+</html>
