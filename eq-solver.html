@@ -677,12 +677,13 @@ async function solve() {
     if (myId !== taskId) return;
     const data = JSON.parse(raw);
     if (data.error) {
+      showError('Errore di calcolo', data.error, 'Controlla la sintassi dell\'espressione.');
+      setStatus('error', 'Errore');
     } else {
       resultCache.set(cacheKey, data);
       renderResult(data, eq);
       setStatus('success', 'Analisi completata');
       addToHistory(eq);
-      syncHash(eq);
       syncHash(eq);
     }
   } catch(e) {
@@ -820,13 +821,20 @@ try:
     from sympy.parsing.sympy_parser import parse_expr, standard_transformations, implicit_multiplication_application, convert_xor
     transformations = standard_transformations + (implicit_multiplication_application, convert_xor)
     
-    if '=' in raw_input_str and 'Eq(' not in raw_input_str:
-        left_str, right_str = raw_input_str.split('=', 1)
-        left = parse_expr(left_str, transformations=transformations)
-        right = parse_expr(right_str, transformations=transformations)
-        expr = left - right
-    else:
-        expr = parse_expr(raw_input_str, transformations=transformations)
+    try:
+        if '=' in raw_input_str and 'Eq(' not in raw_input_str:
+            left_str, right_str = raw_input_str.split('=', 1)
+            left = parse_expr(left_str, transformations=transformations)
+            right = parse_expr(right_str, transformations=transformations)
+            expr = left - right
+        else:
+            expr = parse_expr(raw_input_str, transformations=transformations)
+    except SyntaxError as exc:
+        res_json = json.dumps({'error': 'Errore di sintassi: controlla le parentesi o l\\\'espressione.'})
+        raise Exception('Errore di sintassi: controlla le parentesi o l\\\'espressione.')
+    except Exception as exc:
+        res_json = json.dumps({'error': str(exc)})
+        raise exc
 
     out = {'blocks': []}
 
@@ -917,7 +925,6 @@ try:
             if diff_steps_list:
                 block['steps'] = diff_steps_list
 
-            except: pass
             out['blocks'].append(block)
     except: pass
 
@@ -939,7 +946,6 @@ try:
                 block_def['latex'] += r' \\approx ' + approx_val
             except: pass
             
-            except: pass
             out['blocks'].append(block_def)
 
         I = sp.integrate(expr, var_sym)
@@ -953,7 +959,6 @@ try:
                 block['steps'] = int_steps_list
         except: pass
 
-        except: pass
         out['blocks'].append(block)
     except: pass
     # 4.5 Studio Funzione Avanzato
