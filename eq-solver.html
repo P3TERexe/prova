@@ -830,6 +830,18 @@ try:
 
     out = {'blocks': []}
 
+    # ⚡ Bolt Optimization: Pre-compute and cache expensive SymPy operations
+    # to prevent redundant evaluations and minimize main thread blocking in Pyodide.
+    try:
+        cached_factor = sp.factor(expr)
+    except Exception:
+        cached_factor = expr
+
+    try:
+        cached_diff = sp.diff(expr, var_sym)
+    except Exception:
+        cached_diff = 0
+
     # 1. Base form
     try:
         simp = sp.simplify(expr)
@@ -899,7 +911,7 @@ try:
             elif expr != simp:
                 steps_list.append({"desc": "Semplificazione", "latex": sp.latex(simp) + " = 0"})
             
-            fact = sp.factor(expr)
+            fact = cached_factor
             if fact != expr and fact.is_Mul:
                 steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(fact) + " = 0"})
 
@@ -909,7 +921,7 @@ try:
 
     # 3. Derivative
     try:
-        d = sp.diff(expr, var_sym)
+        d = cached_diff
         if d != 0:
             block = { 'type': 'diff', 'title': 'Derivata rispetto a ${v}', 'latex': r'\\dfrac{d}{d ${v}}\\!\\left[' + sp.latex(expr) + r'\\right] = ' + sp.latex(d) }
             
@@ -966,7 +978,7 @@ try:
 
     try:
         if len(expr.free_symbols) <= 1:
-            d1 = sp.diff(expr, var_sym)
+            d1 = cached_diff
             d2 = sp.diff(d1, var_sym)
             crit_sols = sp.solve(d1, var_sym)
             crit_real = []
@@ -999,7 +1011,7 @@ try:
 
     # 5. Factorization / Expansion
     try:
-        f = sp.factor(expr)
+        f = cached_factor
         if f != expr:
             out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(f) })
             
