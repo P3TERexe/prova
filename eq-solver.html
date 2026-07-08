@@ -828,6 +828,12 @@ try:
     else:
         expr = parse_expr(raw_input_str, transformations=transformations)
 
+    # ⚡ Bolt Optimization: Cache the result of sp.factor(expr) to avoid repetitive and expensive SymPy calculations.
+    try:
+        cached_factor = sp.factor(expr)
+    except Exception:
+        cached_factor = expr
+
     out = {'blocks': []}
 
     # 1. Base form
@@ -899,7 +905,7 @@ try:
             elif expr != simp:
                 steps_list.append({"desc": "Semplificazione", "latex": sp.latex(simp) + " = 0"})
             
-            fact = sp.factor(expr)
+            fact = cached_factor
             if fact != expr and fact.is_Mul:
                 steps_list.append({"desc": "Fattorizzazione", "latex": sp.latex(fact) + " = 0"})
 
@@ -999,7 +1005,7 @@ try:
 
     # 5. Factorization / Expansion
     try:
-        f = sp.factor(expr)
+        f = cached_factor
         if f != expr:
             out['blocks'].append({ 'type': 'math', 'title': 'Fattorizzazione', 'latex': sp.latex(f) })
             
